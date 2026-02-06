@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PE Portfolio Dashboard</title>
+    <style>
+        :root {
+            --bg-primary: #0f1923;
+            --bg-secondary: #1a2733;
+            --bg-card: #1e2d3d;
+            --bg-row-hover: #253545;
+            --text-primary: #e8edf2;
+            --text-secondary: #8899aa;
+            --accent-blue: #4a9eff;
+            --accent-green: #34d399;
+            --accent-red: #f87171;
+            --accent-amber: #fbbf24;
+            --border: #2a3a4a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 22px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .header h1 span {
+            color: var(--accent-blue);
+        }
+
+        .header-meta {
+            text-align: right;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .header-meta strong {
+            color: var(--text-primary);
+        }
+
+        .kpi-bar {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+            padding: 24px 40px;
+        }
+
+        .kpi-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            transition: transform 0.15s;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .kpi-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .kpi-value {
+            font-size: 26px;
+            font-weight: 700;
+        }
+
+        .kpi-sub {
+            font-size: 12px;
+            margin-top: 6px;
+            color: var(--text-secondary);
+        }
+
+        .kpi-sub .positive { color: var(--accent-green); }
+        .kpi-sub .negative { color: var(--accent-red); }
+
+        .content {
+            padding: 0 40px 40px;
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+
+        .panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-title {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .badge {
+            font-size: 11px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            background: rgba(74, 158, 255, 0.15);
+            color: var(--accent-blue);
+        }
+
+        /* Portfolio Table */
+        .portfolio-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .portfolio-table thead th {
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        .portfolio-table thead th:hover {
+            color: var(--accent-blue);
+        }
+
+        .portfolio-table thead th.sorted-asc::after { content: ' \u25B2'; font-size: 9px; }
+        .portfolio-table thead th.sorted-desc::after { content: ' \u25BC'; font-size: 9px; }
+
+        .portfolio-table tbody tr {
+            border-bottom: 1px solid var(--border);
+            transition: background 0.1s;
+        }
+
+        .portfolio-table tbody tr:hover {
+            background: var(--bg-row-hover);
+        }
+
+        .portfolio-table td {
+            padding: 14px 16px;
+            white-space: nowrap;
+        }
+
+        .company-cell {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .company-logo {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+
+        .company-info .name {
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .company-info .sector {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .money { font-variant-numeric: tabular-nums; text-align: right; }
+        .positive-val { color: var(--accent-green); }
+        .negative-val { color: var(--accent-red); }
+
+        .moic-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .moic-high { background: rgba(52, 211, 153, 0.15); color: var(--accent-green); }
+        .moic-mid { background: rgba(251, 191, 36, 0.15); color: var(--accent-amber); }
+        .moic-low { background: rgba(248, 113, 113, 0.15); color: var(--accent-red); }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+
+        .status-active { background: var(--accent-green); }
+        .status-realized { background: var(--accent-blue); }
+        .status-watchlist { background: var(--accent-amber); }
+
+        /* Charts area */
+        .charts-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .chart-container {
+            padding: 20px;
+        }
+
+        /* Donut chart */
+        .donut-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            padding: 10px 0;
+        }
+
+        .donut-svg {
+            width: 140px;
+            height: 140px;
+            flex-shrink: 0;
+        }
+
+        .donut-legend {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 3px;
+            flex-shrink: 0;
+        }
+
+        .legend-value {
+            color: var(--text-secondary);
+            margin-left: auto;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Bar chart */
+        .bar-chart {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 10px 0;
+        }
+
+        .bar-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .bar-label {
+            width: 80px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .bar-track {
+            flex: 1;
+            height: 22px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.6s ease;
+            display: flex;
+            align-items: center;
+            padding-left: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            min-width: fit-content;
+        }
+
+        .bar-cost { background: rgba(74, 158, 255, 0.5); }
+        .bar-fmv { background: rgba(52, 211, 153, 0.5); }
+        .bar-proceeds { background: rgba(251, 191, 36, 0.5); }
+
+        /* Filter bar */
+        .filter-bar {
+            padding: 16px 40px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .filter-btn {
+            padding: 6px 16px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .filter-btn:hover, .filter-btn.active {
+            background: var(--accent-blue);
+            color: #fff;
+            border-color: var(--accent-blue);
+        }
+
+        .search-input {
+            margin-left: auto;
+            padding: 6px 14px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 12px;
+            width: 220px;
+            outline: none;
+        }
+
+        .search-input:focus {
+            border-color: var(--accent-blue);
+        }
+
+        /* Full width panel */
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .content { grid-template-columns: 1fr; }
+            .kpi-bar { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        @media (max-width: 768px) {
+            .kpi-bar { grid-template-columns: repeat(2, 1fr); }
+            .header { padding: 16px 20px; }
+            .kpi-bar, .content, .filter-bar { padding-left: 20px; padding-right: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1><span>PE</span> Portfolio Dashboard</h1>
+    <div class="header-meta">
+        Fund: <strong>Alpha Growth Fund III</strong><br>
+        Vintage Year: <strong>2021</strong> &middot; Report Date: <strong>31 Dec 2025</strong>
+    </div>
+</div>
+
+<!-- KPI Bar -->
+<div class="kpi-bar" id="kpiBar"></div>
+
+<!-- Filters -->
+<div class="filter-bar">
+    <button class="filter-btn active" data-filter="all">Tutti</button>
+    <button class="filter-btn" data-filter="active">Attivi</button>
+    <button class="filter-btn" data-filter="realized">Realizzati</button>
+    <button class="filter-btn" data-filter="watchlist">Watchlist</button>
+    <input class="search-input" type="text" placeholder="Cerca azienda..." id="searchInput">
+</div>
+
+<!-- Main content -->
+<div class="content">
+    <!-- Portfolio table -->
+    <div class="panel">
+        <div class="panel-header">
+            <span class="panel-title">Dettaglio Portafoglio</span>
+            <span class="badge" id="companyCount"></span>
+        </div>
+        <div style="overflow-x: auto;">
+            <table class="portfolio-table">
+                <thead>
+                    <tr>
+                        <th data-sort="name">Azienda</th>
+                        <th data-sort="cost">Costo</th>
+                        <th data-sort="fmv">Fair Market Value</th>
+                        <th data-sort="pastProceeds">Past Proceeds</th>
+                        <th data-sort="totalValue">Valore Totale</th>
+                        <th data-sort="moic">MOIC</th>
+                        <th data-sort="irr">IRR</th>
+                        <th data-sort="status">Stato</th>
+                    </tr>
+                </thead>
+                <tbody id="portfolioBody"></tbody>
+                <tfoot id="portfolioFoot"></tfoot>
+            </table>
+        </div>
+    </div>
+
+    <!-- Right charts -->
+    <div class="charts-stack">
+        <div class="panel">
+            <div class="panel-header">
+                <span class="panel-title">Allocazione per Settore (FMV)</span>
+            </div>
+            <div class="chart-container">
+                <div class="donut-wrapper">
+                    <svg class="donut-svg" viewBox="0 0 160 160" id="donutChart"></svg>
+                    <div class="donut-legend" id="donutLegend"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header">
+                <span class="panel-title">Cost vs FMV vs Proceeds</span>
+            </div>
+            <div class="chart-container">
+                <div class="bar-chart" id="barChart"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ── Data ──
+const portfolio = [
+    {
+        name: "TechVision AI",
+        sector: "Technology",
+        color: "#4a9eff",
+        investDate: "2021-03-15",
+        cost: 25000000,
+        fmv: 68000000,
+        pastProceeds: 5000000,
+        status: "active",
+        irr: 0.42
+    },
+    {
+        name: "MedLife Sciences",
+        sector: "Healthcare",
+        color: "#34d399",
+        investDate: "2021-06-20",
+        cost: 18000000,
+        fmv: 31500000,
+        pastProceeds: 3200000,
+        status: "active",
+        irr: 0.28
+    },
+    {
+        name: "GreenPower Energy",
+        sector: "Energy",
+        color: "#fbbf24",
+        investDate: "2021-09-10",
+        cost: 30000000,
+        fmv: 52000000,
+        pastProceeds: 8500000,
+        status: "active",
+        irr: 0.35
+    },
+    {
+        name: "FinEdge Capital",
+        sector: "Financial Services",
+        color: "#a78bfa",
+        investDate: "2022-01-05",
+        cost: 15000000,
+        fmv: 0,
+        pastProceeds: 38000000,
+        status: "realized",
+        irr: 0.51
+    },
+    {
+        name: "LogiChain Solutions",
+        sector: "Logistics",
+        color: "#f97316",
+        investDate: "2022-04-18",
+        cost: 22000000,
+        fmv: 29000000,
+        pastProceeds: 4000000,
+        status: "active",
+        irr: 0.19
+    },
+    {
+        name: "CloudServe Platform",
+        sector: "Technology",
+        color: "#06b6d4",
+        investDate: "2022-07-22",
+        cost: 20000000,
+        fmv: 45000000,
+        pastProceeds: 2000000,
+        status: "active",
+        irr: 0.38
+    },
+    {
+        name: "EduNext Global",
+        sector: "Education",
+        color: "#ec4899",
+        investDate: "2022-10-01",
+        cost: 12000000,
+        fmv: 9500000,
+        pastProceeds: 1000000,
+        status: "watchlist",
+        irr: -0.05
+    },
+    {
+        name: "AgroTech Industries",
+        sector: "Agriculture",
+        color: "#84cc16",
+        investDate: "2023-02-14",
+        cost: 16000000,
+        fmv: 21000000,
+        pastProceeds: 0,
+        status: "active",
+        irr: 0.22
+    },
+    {
+        name: "RetailMax Group",
+        sector: "Consumer",
+        color: "#f43f5e",
+        investDate: "2021-11-30",
+        cost: 28000000,
+        fmv: 0,
+        pastProceeds: 55000000,
+        status: "realized",
+        irr: 0.32
+    },
+    {
+        name: "CyberShield Security",
+        sector: "Technology",
+        color: "#8b5cf6",
+        investDate: "2023-05-08",
+        cost: 14000000,
+        fmv: 22500000,
+        pastProceeds: 0,
+        status: "active",
+        irr: 0.31
+    }
+];
+
+// ── Helpers ──
+function fmt(val) {
+    if (val >= 1e9) return '\u20AC' + (val / 1e9).toFixed(1) + 'B';
+    if (val >= 1e6) return '\u20AC' + (val / 1e6).toFixed(1) + 'M';
+    if (val >= 1e3) return '\u20AC' + (val / 1e3).toFixed(0) + 'K';
+    return '\u20AC' + val.toFixed(0);
+}
+
+function pct(val) {
+    return (val * 100).toFixed(1) + '%';
+}
+
+function totalValue(c) {
+    return c.fmv + c.pastProceeds;
+}
+
+function moic(c) {
+    return totalValue(c) / c.cost;
+}
+
+// ── State ──
+let currentFilter = 'all';
+let currentSort = { key: 'name', dir: 'asc' };
+let searchQuery = '';
+
+function getFiltered() {
+    return portfolio.filter(c => {
+        if (currentFilter !== 'all' && c.status !== currentFilter) return false;
+        if (searchQuery && !c.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+            !c.sector.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+        return true;
+    });
+}
+
+function getSorted(data) {
+    const arr = [...data];
+    const { key, dir } = currentSort;
+    arr.sort((a, b) => {
+        let va, vb;
+        switch (key) {
+            case 'name': va = a.name; vb = b.name; break;
+            case 'cost': va = a.cost; vb = b.cost; break;
+            case 'fmv': va = a.fmv; vb = b.fmv; break;
+            case 'pastProceeds': va = a.pastProceeds; vb = b.pastProceeds; break;
+            case 'totalValue': va = totalValue(a); vb = totalValue(b); break;
+            case 'moic': va = moic(a); vb = moic(b); break;
+            case 'irr': va = a.irr; vb = b.irr; break;
+            case 'status': va = a.status; vb = b.status; break;
+            default: va = a.name; vb = b.name;
+        }
+        if (typeof va === 'string') return dir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+        return dir === 'asc' ? va - vb : vb - va;
+    });
+    return arr;
+}
+
+// ── Render KPIs ──
+function renderKPIs() {
+    const totCost = portfolio.reduce((s, c) => s + c.cost, 0);
+    const totFMV = portfolio.reduce((s, c) => s + c.fmv, 0);
+    const totProceeds = portfolio.reduce((s, c) => s + c.pastProceeds, 0);
+    const totVal = totFMV + totProceeds;
+    const grossMOIC = totVal / totCost;
+    const activeCount = portfolio.filter(c => c.status === 'active').length;
+
+    const kpis = [
+        { label: 'Costo Totale', value: fmt(totCost), sub: `${portfolio.length} investimenti` },
+        { label: 'Fair Market Value', value: fmt(totFMV), sub: `${activeCount} attivi` },
+        { label: 'Past Proceeds', value: fmt(totProceeds), sub: `${portfolio.filter(c => c.status === 'realized').length} realizzati` },
+        { label: 'Valore Totale', value: fmt(totVal), sub: `<span class="${totVal > totCost ? 'positive' : 'negative'}">${totVal > totCost ? '+' : ''}${fmt(totVal - totCost)} P&L</span>` },
+        { label: 'Gross MOIC', value: grossMOIC.toFixed(2) + 'x', sub: `<span class="${grossMOIC > 1 ? 'positive' : 'negative'}">IRR medio: ${pct(portfolio.reduce((s, c) => s + c.irr, 0) / portfolio.length)}</span>` }
+    ];
+
+    document.getElementById('kpiBar').innerHTML = kpis.map(k => `
+        <div class="kpi-card">
+            <div class="kpi-label">${k.label}</div>
+            <div class="kpi-value">${k.value}</div>
+            <div class="kpi-sub">${k.sub}</div>
+        </div>
+    `).join('');
+}
+
+// ── Render Table ──
+function renderTable() {
+    const data = getSorted(getFiltered());
+    document.getElementById('companyCount').textContent = data.length + ' aziende';
+
+    const statusMap = {
+        active: ['Attivo', 'status-active'],
+        realized: ['Realizzato', 'status-realized'],
+        watchlist: ['Watchlist', 'status-watchlist']
+    };
+
+    document.getElementById('portfolioBody').innerHTML = data.map(c => {
+        const tv = totalValue(c);
+        const m = moic(c);
+        const [statusText, statusClass] = statusMap[c.status];
+        let moicClass = m >= 2 ? 'moic-high' : m >= 1 ? 'moic-mid' : 'moic-low';
+
+        return `<tr>
+            <td>
+                <div class="company-cell">
+                    <div class="company-logo" style="background:${c.color}22;color:${c.color}">${c.name.charAt(0)}</div>
+                    <div class="company-info">
+                        <div class="name">${c.name}</div>
+                        <div class="sector">${c.sector}</div>
+                    </div>
+                </div>
+            </td>
+            <td class="money">${fmt(c.cost)}</td>
+            <td class="money">${fmt(c.fmv)}</td>
+            <td class="money">${fmt(c.pastProceeds)}</td>
+            <td class="money ${tv > c.cost ? 'positive-val' : tv < c.cost ? 'negative-val' : ''}">${fmt(tv)}</td>
+            <td><span class="moic-badge ${moicClass}">${m.toFixed(2)}x</span></td>
+            <td class="${c.irr >= 0 ? 'positive-val' : 'negative-val'}">${pct(c.irr)}</td>
+            <td><span class="status-dot ${statusClass}"></span>${statusText}</td>
+        </tr>`;
+    }).join('');
+
+    // Footer totals
+    const totCost = data.reduce((s, c) => s + c.cost, 0);
+    const totFMV = data.reduce((s, c) => s + c.fmv, 0);
+    const totProceeds = data.reduce((s, c) => s + c.pastProceeds, 0);
+    const totTV = totFMV + totProceeds;
+    const totMOIC = totCost > 0 ? totTV / totCost : 0;
+
+    document.getElementById('portfolioFoot').innerHTML = `
+        <tr style="font-weight:700; border-top:2px solid var(--border); background:var(--bg-secondary);">
+            <td>Totale (${data.length})</td>
+            <td class="money">${fmt(totCost)}</td>
+            <td class="money">${fmt(totFMV)}</td>
+            <td class="money">${fmt(totProceeds)}</td>
+            <td class="money ${totTV > totCost ? 'positive-val' : 'negative-val'}">${fmt(totTV)}</td>
+            <td><span class="moic-badge ${totMOIC >= 2 ? 'moic-high' : totMOIC >= 1 ? 'moic-mid' : 'moic-low'}">${totMOIC.toFixed(2)}x</span></td>
+            <td colspan="2"></td>
+        </tr>`;
+
+    // Update sort indicators
+    document.querySelectorAll('.portfolio-table thead th').forEach(th => {
+        th.classList.remove('sorted-asc', 'sorted-desc');
+        if (th.dataset.sort === currentSort.key) {
+            th.classList.add(currentSort.dir === 'asc' ? 'sorted-asc' : 'sorted-desc');
+        }
+    });
+}
+
+// ── Render Donut Chart (Sector Allocation by FMV) ──
+function renderDonut() {
+    const sectorMap = {};
+    portfolio.forEach(c => {
+        if (c.fmv > 0) {
+            if (!sectorMap[c.sector]) sectorMap[c.sector] = { total: 0, color: c.color };
+            sectorMap[c.sector].total += c.fmv;
+        }
+    });
+
+    const sectors = Object.entries(sectorMap)
+        .map(([name, d]) => ({ name, ...d }))
+        .sort((a, b) => b.total - a.total);
+
+    const totalFMV = sectors.reduce((s, sec) => s + sec.total, 0);
+    const cx = 80, cy = 80, r = 60, innerR = 38;
+    let cumAngle = -Math.PI / 2;
+    let paths = '';
+
+    sectors.forEach(sec => {
+        const angle = (sec.total / totalFMV) * 2 * Math.PI;
+        const endAngle = cumAngle + angle;
+        const largeArc = angle > Math.PI ? 1 : 0;
+
+        const x1o = cx + r * Math.cos(cumAngle);
+        const y1o = cy + r * Math.sin(cumAngle);
+        const x2o = cx + r * Math.cos(endAngle);
+        const y2o = cy + r * Math.sin(endAngle);
+        const x1i = cx + innerR * Math.cos(endAngle);
+        const y1i = cy + innerR * Math.sin(endAngle);
+        const x2i = cx + innerR * Math.cos(cumAngle);
+        const y2i = cy + innerR * Math.sin(cumAngle);
+
+        paths += `<path d="M${x1o},${y1o} A${r},${r} 0 ${largeArc} 1 ${x2o},${y2o}
+            L${x1i},${y1i} A${innerR},${innerR} 0 ${largeArc} 0 ${x2i},${y2i} Z"
+            fill="${sec.color}" opacity="0.8"/>`;
+        cumAngle = endAngle;
+    });
+
+    // Center text
+    paths += `<text x="${cx}" y="${cy - 4}" text-anchor="middle" fill="var(--text-secondary)" font-size="9">FMV Totale</text>`;
+    paths += `<text x="${cx}" y="${cy + 14}" text-anchor="middle" fill="var(--text-primary)" font-size="14" font-weight="700">${fmt(totalFMV)}</text>`;
+
+    document.getElementById('donutChart').innerHTML = paths;
+
+    document.getElementById('donutLegend').innerHTML = sectors.map(sec => `
+        <div class="legend-item">
+            <div class="legend-dot" style="background:${sec.color}"></div>
+            <span>${sec.name}</span>
+            <span class="legend-value">${((sec.total / totalFMV) * 100).toFixed(0)}%</span>
+        </div>
+    `).join('');
+}
+
+// ── Render Bar Chart (Top 5 by Total Value) ──
+function renderBarChart() {
+    const top5 = [...portfolio]
+        .sort((a, b) => totalValue(b) - totalValue(a))
+        .slice(0, 5);
+
+    const maxVal = Math.max(...top5.map(c => Math.max(c.cost, c.fmv, c.pastProceeds)));
+
+    document.getElementById('barChart').innerHTML = top5.map(c => {
+        const costW = (c.cost / maxVal) * 100;
+        const fmvW = (c.fmv / maxVal) * 100;
+        const procW = (c.pastProceeds / maxVal) * 100;
+        const shortName = c.name.split(' ')[0];
+
+        return `
+        <div>
+            <div class="bar-row">
+                <div class="bar-label">${shortName}</div>
+                <div class="bar-track">
+                    <div class="bar-fill bar-cost" style="width:${costW}%">${fmt(c.cost)}</div>
+                </div>
+            </div>
+            <div class="bar-row">
+                <div class="bar-label" style="font-size:10px;color:var(--accent-blue)">Cost</div>
+                <div class="bar-track">
+                    <div class="bar-fill bar-fmv" style="width:${fmvW}%">${fmt(c.fmv)}</div>
+                </div>
+            </div>
+            <div class="bar-row">
+                <div class="bar-label" style="font-size:10px;color:var(--accent-green)">FMV</div>
+                <div class="bar-track">
+                    <div class="bar-fill bar-proceeds" style="width:${procW}%">${fmt(c.pastProceeds)}</div>
+                </div>
+            </div>
+        </div>`;
+    }).join('<div style="height:8px;border-bottom:1px solid var(--border);margin-bottom:8px"></div>');
+
+    // Legend
+    document.getElementById('barChart').innerHTML += `
+        <div style="display:flex;gap:20px;justify-content:center;margin-top:12px;font-size:11px;color:var(--text-secondary)">
+            <span><span style="display:inline-block;width:10px;height:10px;background:rgba(74,158,255,0.5);border-radius:2px;margin-right:4px"></span>Cost</span>
+            <span><span style="display:inline-block;width:10px;height:10px;background:rgba(52,211,153,0.5);border-radius:2px;margin-right:4px"></span>FMV</span>
+            <span><span style="display:inline-block;width:10px;height:10px;background:rgba(251,191,36,0.5);border-radius:2px;margin-right:4px"></span>Proceeds</span>
+        </div>`;
+}
+
+// ── Events ──
+// Filter buttons
+document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.dataset.filter;
+        renderTable();
+    });
+});
+
+// Search
+document.getElementById('searchInput').addEventListener('input', e => {
+    searchQuery = e.target.value;
+    renderTable();
+});
+
+// Sort
+document.querySelectorAll('.portfolio-table thead th').forEach(th => {
+    th.addEventListener('click', () => {
+        const key = th.dataset.sort;
+        if (!key) return;
+        if (currentSort.key === key) {
+            currentSort.dir = currentSort.dir === 'asc' ? 'desc' : 'asc';
+        } else {
+            currentSort = { key, dir: 'asc' };
+        }
+        renderTable();
+    });
+});
+
+// ── Init ──
+renderKPIs();
+renderTable();
+renderDonut();
+renderBarChart();
+</script>
+</body>
+</html>
