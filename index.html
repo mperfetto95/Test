@@ -379,16 +379,258 @@
             grid-column: 1 / -1;
         }
 
+        /* ── Simulation Section ── */
+        .sim-section {
+            padding: 0 40px 40px;
+        }
+
+        .sim-toggle {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 40px 0;
+        }
+
+        .sim-toggle-btn {
+            padding: 10px 24px;
+            border-radius: 8px;
+            border: 1px solid var(--accent-blue);
+            background: transparent;
+            color: var(--accent-blue);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .sim-toggle-btn:hover, .sim-toggle-btn.active {
+            background: var(--accent-blue);
+            color: #fff;
+        }
+
+        .sim-toggle-label {
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .sim-hidden { display: none; }
+
+        .sim-controls {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .sim-control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .sim-control-group label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-secondary);
+        }
+
+        .sim-control-group .ctrl-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sim-slider {
+            flex: 1;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 6px;
+            border-radius: 3px;
+            background: var(--border);
+            outline: none;
+        }
+
+        .sim-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--accent-blue);
+            cursor: pointer;
+            border: 2px solid var(--bg-card);
+        }
+
+        .sim-slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--accent-blue);
+            cursor: pointer;
+            border: 2px solid var(--bg-card);
+        }
+
+        .ctrl-value {
+            min-width: 55px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--accent-blue);
+        }
+
+        .sim-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 0 40px 40px;
+        }
+
+        .scenario-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            padding: 20px;
+        }
+
+        .scenario-card {
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+            border: 1px solid var(--border);
+            transition: transform 0.15s;
+        }
+
+        .scenario-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .scenario-card.bear {
+            background: rgba(248, 113, 113, 0.08);
+            border-color: rgba(248, 113, 113, 0.3);
+        }
+
+        .scenario-card.base {
+            background: rgba(251, 191, 36, 0.08);
+            border-color: rgba(251, 191, 36, 0.3);
+        }
+
+        .scenario-card.bull {
+            background: rgba(52, 211, 153, 0.08);
+            border-color: rgba(52, 211, 153, 0.3);
+        }
+
+        .scenario-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+
+        .bear .scenario-label { color: var(--accent-red); }
+        .base .scenario-label { color: var(--accent-amber); }
+        .bull .scenario-label { color: var(--accent-green); }
+
+        .scenario-big {
+            font-size: 28px;
+            font-weight: 700;
+            margin: 4px 0;
+        }
+
+        .scenario-detail {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .scenario-detail strong {
+            color: var(--text-primary);
+        }
+
+        .sim-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        .sim-table thead th {
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .sim-table tbody tr {
+            border-bottom: 1px solid var(--border);
+        }
+
+        .sim-table tbody tr:hover {
+            background: var(--bg-row-hover);
+        }
+
+        .sim-table td {
+            padding: 10px 12px;
+            white-space: nowrap;
+        }
+
+        .sim-table tfoot td {
+            padding: 10px 12px;
+            font-weight: 700;
+            border-top: 2px solid var(--border);
+            background: var(--bg-secondary);
+        }
+
+        /* Sensitivity matrix */
+        .sensitivity-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            text-align: center;
+        }
+
+        .sensitivity-table th, .sensitivity-table td {
+            padding: 8px 6px;
+            border: 1px solid var(--border);
+        }
+
+        .sensitivity-table th {
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            font-size: 10px;
+            text-transform: uppercase;
+        }
+
+        .sensitivity-table .corner {
+            background: var(--bg-card);
+        }
+
+        .sensitivity-table td {
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .cell-green { background: rgba(52, 211, 153, 0.12); color: var(--accent-green); }
+        .cell-light-green { background: rgba(52, 211, 153, 0.06); color: #6ee7b7; }
+        .cell-amber { background: rgba(251, 191, 36, 0.08); color: var(--accent-amber); }
+        .cell-red { background: rgba(248, 113, 113, 0.1); color: var(--accent-red); }
+
         /* Responsive */
         @media (max-width: 1200px) {
             .content { grid-template-columns: 1fr; }
             .kpi-bar { grid-template-columns: repeat(3, 1fr); }
+            .sim-grid { grid-template-columns: 1fr; }
         }
 
         @media (max-width: 768px) {
             .kpi-bar { grid-template-columns: repeat(2, 1fr); }
             .header { padding: 16px 20px; }
-            .kpi-bar, .content, .filter-bar { padding-left: 20px; padding-right: 20px; }
+            .kpi-bar, .content, .filter-bar, .sim-section, .sim-grid, .sim-toggle { padding-left: 20px; padding-right: 20px; }
+            .sim-controls { grid-template-columns: 1fr; }
+            .scenario-cards { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -462,6 +704,100 @@
             </div>
             <div class="chart-container">
                 <div class="bar-chart" id="barChart"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ══════ SIMULATION SECTION ══════ -->
+<div class="sim-toggle">
+    <button class="sim-toggle-btn" id="simToggle">Simulazione Acquisto Portafoglio</button>
+    <span class="sim-toggle-label">Analizza i rendimenti potenziali se acquistassi il portafoglio</span>
+</div>
+
+<div id="simSection" class="sim-hidden">
+    <!-- Controls -->
+    <div class="sim-section">
+        <div class="panel" style="margin-top:20px;">
+            <div class="panel-header">
+                <span class="panel-title">Parametri di Acquisto</span>
+                <span class="badge" id="simPurchasePrice"></span>
+            </div>
+            <div class="sim-controls">
+                <div class="sim-control-group">
+                    <label>Sconto / Premio su FMV</label>
+                    <div class="ctrl-row">
+                        <input type="range" class="sim-slider" id="discountSlider" min="-50" max="30" value="-15" step="1">
+                        <span class="ctrl-value" id="discountValue">-15%</span>
+                    </div>
+                    <span style="font-size:11px;color:var(--text-secondary)">Negativo = sconto, Positivo = premio</span>
+                </div>
+                <div class="sim-control-group">
+                    <label>Holding Period (anni)</label>
+                    <div class="ctrl-row">
+                        <input type="range" class="sim-slider" id="holdingSlider" min="1" max="10" value="5" step="1">
+                        <span class="ctrl-value" id="holdingValue">5</span>
+                    </div>
+                    <span style="font-size:11px;color:var(--text-secondary)">Periodo previsto di detenzione</span>
+                </div>
+                <div class="sim-control-group">
+                    <label>Tasso di Crescita Annuo (Base)</label>
+                    <div class="ctrl-row">
+                        <input type="range" class="sim-slider" id="growthSlider" min="0" max="40" value="12" step="1">
+                        <span class="ctrl-value" id="growthValue">12%</span>
+                    </div>
+                    <span style="font-size:11px;color:var(--text-secondary)">CAGR atteso scenario base</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scenario cards + Sim table -->
+    <div class="sim-grid">
+        <!-- Scenarios -->
+        <div class="panel">
+            <div class="panel-header">
+                <span class="panel-title">Analisi Scenari</span>
+            </div>
+            <div class="scenario-cards" id="scenarioCards"></div>
+        </div>
+
+        <!-- Sensitivity matrix -->
+        <div class="panel">
+            <div class="panel-header">
+                <span class="panel-title">Matrice di Sensibilit&agrave; (MOIC)</span>
+                <span style="font-size:11px;color:var(--text-secondary)">Sconto vs Crescita</span>
+            </div>
+            <div style="padding:16px;overflow-x:auto;">
+                <table class="sensitivity-table" id="sensitivityTable"></table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Per-company sim detail -->
+    <div class="sim-section">
+        <div class="panel">
+            <div class="panel-header">
+                <span class="panel-title">Dettaglio Simulazione per Azienda</span>
+                <span class="badge">Scenario Base</span>
+            </div>
+            <div style="overflow-x:auto;">
+                <table class="sim-table">
+                    <thead>
+                        <tr>
+                            <th>Azienda</th>
+                            <th>FMV Attuale</th>
+                            <th>Prezzo Acquisto</th>
+                            <th>Sconto Implicito</th>
+                            <th>Valore Uscita (Base)</th>
+                            <th>P&amp;L</th>
+                            <th>MOIC</th>
+                            <th>IRR</th>
+                        </tr>
+                    </thead>
+                    <tbody id="simTableBody"></tbody>
+                    <tfoot id="simTableFoot"></tfoot>
+                </table>
             </div>
         </div>
     </div>
@@ -858,6 +1194,184 @@ document.querySelectorAll('.portfolio-table thead th').forEach(th => {
         renderTable();
     });
 });
+
+// ══════ SIMULATION MODULE ══════
+
+// Sim state
+let simDiscount = -15;  // % discount on FMV (negative = discount)
+let simHolding = 5;     // years
+let simGrowth = 12;     // % annual growth (base case)
+
+const simToggleBtn = document.getElementById('simToggle');
+const simSection = document.getElementById('simSection');
+
+simToggleBtn.addEventListener('click', () => {
+    simToggleBtn.classList.toggle('active');
+    simSection.classList.toggle('sim-hidden');
+    if (!simSection.classList.contains('sim-hidden')) {
+        renderSimulation();
+    }
+});
+
+// Slider events
+document.getElementById('discountSlider').addEventListener('input', e => {
+    simDiscount = parseInt(e.target.value);
+    document.getElementById('discountValue').textContent = (simDiscount > 0 ? '+' : '') + simDiscount + '%';
+    renderSimulation();
+});
+
+document.getElementById('holdingSlider').addEventListener('input', e => {
+    simHolding = parseInt(e.target.value);
+    document.getElementById('holdingValue').textContent = simHolding;
+    renderSimulation();
+});
+
+document.getElementById('growthSlider').addEventListener('input', e => {
+    simGrowth = parseInt(e.target.value);
+    document.getElementById('growthValue').textContent = simGrowth + '%';
+    renderSimulation();
+});
+
+function getActivePortfolio() {
+    return portfolio.filter(c => c.status === 'active');
+}
+
+function calcPurchasePrice(company) {
+    return company.fmv * (1 + simDiscount / 100);
+}
+
+function calcExitValue(company, growthRate, years) {
+    return company.fmv * Math.pow(1 + growthRate / 100, years);
+}
+
+function calcIRR(purchase, exit, years) {
+    if (purchase <= 0 || years <= 0) return 0;
+    return Math.pow(exit / purchase, 1 / years) - 1;
+}
+
+function renderSimulation() {
+    const active = getActivePortfolio();
+
+    // Total purchase price
+    const totalPurchase = active.reduce((s, c) => s + calcPurchasePrice(c), 0);
+    document.getElementById('simPurchasePrice').textContent = 'Prezzo totale: ' + fmt(totalPurchase);
+
+    renderScenarios(active, totalPurchase);
+    renderSensitivity(active);
+    renderSimTable(active);
+}
+
+function renderScenarios(active, totalPurchase) {
+    const scenarios = [
+        { key: 'bear', label: 'Bear Case', growth: Math.max(0, simGrowth - 8), color: 'var(--accent-red)' },
+        { key: 'base', label: 'Base Case', growth: simGrowth, color: 'var(--accent-amber)' },
+        { key: 'bull', label: 'Bull Case', growth: simGrowth + 8, color: 'var(--accent-green)' }
+    ];
+
+    document.getElementById('scenarioCards').innerHTML = scenarios.map(sc => {
+        const exitVal = active.reduce((s, c) => s + calcExitValue(c, sc.growth, simHolding), 0);
+        const pl = exitVal - totalPurchase;
+        const scenarioMOIC = totalPurchase > 0 ? exitVal / totalPurchase : 0;
+        const scenarioIRR = calcIRR(totalPurchase, exitVal, simHolding);
+
+        return `
+        <div class="scenario-card ${sc.key}">
+            <div class="scenario-label">${sc.label}</div>
+            <div class="scenario-big">${scenarioMOIC.toFixed(2)}x</div>
+            <div class="scenario-detail">
+                Crescita: <strong>${sc.growth}% p.a.</strong><br>
+                Valore Uscita: <strong>${fmt(exitVal)}</strong><br>
+                P&L: <strong style="color:${pl >= 0 ? 'var(--accent-green)' : 'var(--accent-red)'}">${pl >= 0 ? '+' : ''}${fmt(pl)}</strong><br>
+                IRR: <strong>${pct(scenarioIRR)}</strong><br>
+                Holding: <strong>${simHolding} anni</strong>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function renderSensitivity(active) {
+    const discounts = [-30, -20, -15, -10, 0, 10];
+    const growths = [4, 8, 12, 16, 20, 25];
+
+    let html = '<thead><tr><th class="corner">Sconto \\ Crescita</th>';
+    growths.forEach(g => { html += `<th>${g}%</th>`; });
+    html += '</tr></thead><tbody>';
+
+    discounts.forEach(d => {
+        html += `<tr><th>${(d > 0 ? '+' : '') + d}%</th>`;
+        growths.forEach(g => {
+            const totPurchase = active.reduce((s, c) => s + c.fmv * (1 + d / 100), 0);
+            const totExit = active.reduce((s, c) => s + c.fmv * Math.pow(1 + g / 100, simHolding), 0);
+            const m = totPurchase > 0 ? totExit / totPurchase : 0;
+
+            let cellClass = 'cell-red';
+            if (m >= 3) cellClass = 'cell-green';
+            else if (m >= 2) cellClass = 'cell-light-green';
+            else if (m >= 1) cellClass = 'cell-amber';
+
+            const isActive = d === simDiscount && g === simGrowth;
+            const border = isActive ? 'outline:2px solid var(--accent-blue);outline-offset:-2px;' : '';
+
+            html += `<td class="${cellClass}" style="${border}">${m.toFixed(2)}x</td>`;
+        });
+        html += '</tr>';
+    });
+
+    html += '</tbody>';
+    document.getElementById('sensitivityTable').innerHTML = html;
+}
+
+function renderSimTable(active) {
+    let totFMV = 0, totPurchase = 0, totExit = 0;
+
+    document.getElementById('simTableBody').innerHTML = active.map(c => {
+        const purchase = calcPurchasePrice(c);
+        const exit = calcExitValue(c, simGrowth, simHolding);
+        const pl = exit - purchase;
+        const m = purchase > 0 ? exit / purchase : 0;
+        const irr = calcIRR(purchase, exit, simHolding);
+        const implicitDiscount = ((purchase - c.fmv) / c.fmv) * 100;
+
+        totFMV += c.fmv;
+        totPurchase += purchase;
+        totExit += exit;
+
+        return `<tr>
+            <td>
+                <div class="company-cell">
+                    <div class="company-logo" style="background:${c.color}22;color:${c.color}">${c.name.charAt(0)}</div>
+                    <div class="company-info">
+                        <div class="name">${c.name}</div>
+                        <div class="sector">${c.sector}</div>
+                    </div>
+                </div>
+            </td>
+            <td class="money">${fmt(c.fmv)}</td>
+            <td class="money">${fmt(purchase)}</td>
+            <td class="money" style="color:${implicitDiscount <= 0 ? 'var(--accent-green)' : 'var(--accent-red)'}">${implicitDiscount > 0 ? '+' : ''}${implicitDiscount.toFixed(1)}%</td>
+            <td class="money">${fmt(exit)}</td>
+            <td class="money ${pl >= 0 ? 'positive-val' : 'negative-val'}">${pl >= 0 ? '+' : ''}${fmt(pl)}</td>
+            <td><span class="moic-badge ${m >= 2 ? 'moic-high' : m >= 1 ? 'moic-mid' : 'moic-low'}">${m.toFixed(2)}x</span></td>
+            <td class="${irr >= 0 ? 'positive-val' : 'negative-val'}">${pct(irr)}</td>
+        </tr>`;
+    }).join('');
+
+    const totPL = totExit - totPurchase;
+    const totMOIC = totPurchase > 0 ? totExit / totPurchase : 0;
+    const totIRR = calcIRR(totPurchase, totExit, simHolding);
+
+    document.getElementById('simTableFoot').innerHTML = `
+        <tr>
+            <td>Totale Portafoglio</td>
+            <td class="money">${fmt(totFMV)}</td>
+            <td class="money">${fmt(totPurchase)}</td>
+            <td class="money" style="color:${simDiscount <= 0 ? 'var(--accent-green)' : 'var(--accent-red)'}">${simDiscount > 0 ? '+' : ''}${simDiscount}%</td>
+            <td class="money">${fmt(totExit)}</td>
+            <td class="money ${totPL >= 0 ? 'positive-val' : 'negative-val'}">${totPL >= 0 ? '+' : ''}${fmt(totPL)}</td>
+            <td><span class="moic-badge ${totMOIC >= 2 ? 'moic-high' : totMOIC >= 1 ? 'moic-mid' : 'moic-low'}">${totMOIC.toFixed(2)}x</span></td>
+            <td class="${totIRR >= 0 ? 'positive-val' : 'negative-val'}">${pct(totIRR)}</td>
+        </tr>`;
+}
 
 // ── Init ──
 renderKPIs();
