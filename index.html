@@ -18,619 +18,127 @@
             --accent-amber: #fbbf24;
             --border: #2a3a4a;
         }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            min-height: 100vh;
-        }
-
-        .header {
-            background: var(--bg-secondary);
-            border-bottom: 1px solid var(--border);
-            padding: 20px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .header h1 {
-            font-size: 22px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-        }
-
-        .header h1 span {
-            color: var(--accent-blue);
-        }
-
-        .header-meta {
-            text-align: right;
-            color: var(--text-secondary);
-            font-size: 13px;
-        }
-
-        .header-meta strong {
-            color: var(--text-primary);
-        }
-
-        .kpi-bar {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 16px;
-            padding: 24px 40px;
-        }
-
-        .kpi-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 20px;
-            transition: transform 0.15s;
-        }
-
-        .kpi-card:hover {
-            transform: translateY(-2px);
-        }
-
-        .kpi-label {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-secondary);
-            margin-bottom: 8px;
-        }
-
-        .kpi-value {
-            font-size: 26px;
-            font-weight: 700;
-        }
-
-        .kpi-sub {
-            font-size: 12px;
-            margin-top: 6px;
-            color: var(--text-secondary);
-        }
-
-        .kpi-sub .positive { color: var(--accent-green); }
-        .kpi-sub .negative { color: var(--accent-red); }
-
-        .content {
-            padding: 0 40px 40px;
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 20px;
-        }
-
-        .panel {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        .panel-header {
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .panel-title {
-            font-size: 15px;
-            font-weight: 600;
-        }
-
-        .badge {
-            font-size: 11px;
-            padding: 3px 10px;
-            border-radius: 20px;
-            background: rgba(74, 158, 255, 0.15);
-            color: var(--accent-blue);
-        }
-
-        /* Portfolio Table */
-        .portfolio-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-
-        .portfolio-table thead th {
-            padding: 12px 16px;
-            text-align: left;
-            font-weight: 600;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            color: var(--text-secondary);
-            border-bottom: 1px solid var(--border);
-            cursor: pointer;
-            user-select: none;
-            white-space: nowrap;
-        }
-
-        .portfolio-table thead th:hover {
-            color: var(--accent-blue);
-        }
-
-        .portfolio-table thead th.sorted-asc::after { content: ' \u25B2'; font-size: 9px; }
-        .portfolio-table thead th.sorted-desc::after { content: ' \u25BC'; font-size: 9px; }
-
-        .portfolio-table tbody tr {
-            border-bottom: 1px solid var(--border);
-            transition: background 0.1s;
-        }
-
-        .portfolio-table tbody tr:hover {
-            background: var(--bg-row-hover);
-        }
-
-        .portfolio-table td {
-            padding: 14px 16px;
-            white-space: nowrap;
-        }
-
-        .company-cell {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .company-logo {
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 13px;
-            flex-shrink: 0;
-        }
-
-        .company-info .name {
-            font-weight: 600;
-            font-size: 13px;
-        }
-
-        .company-info .sector {
-            font-size: 11px;
-            color: var(--text-secondary);
-        }
-
-        .money { font-variant-numeric: tabular-nums; text-align: right; }
-        .positive-val { color: var(--accent-green); }
-        .negative-val { color: var(--accent-red); }
-
-        .moic-badge {
-            display: inline-block;
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .moic-high { background: rgba(52, 211, 153, 0.15); color: var(--accent-green); }
-        .moic-mid { background: rgba(251, 191, 36, 0.15); color: var(--accent-amber); }
-        .moic-low { background: rgba(248, 113, 113, 0.15); color: var(--accent-red); }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 6px;
-        }
-
-        .status-active { background: var(--accent-green); }
-        .status-realized { background: var(--accent-blue); }
-        .status-watchlist { background: var(--accent-amber); }
-
-        /* Charts area */
-        .charts-stack {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .chart-container {
-            padding: 20px;
-        }
-
-        /* Donut chart */
-        .donut-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 24px;
-            padding: 10px 0;
-        }
-
-        .donut-svg {
-            width: 140px;
-            height: 140px;
-            flex-shrink: 0;
-        }
-
-        .donut-legend {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 12px;
-        }
-
-        .legend-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 3px;
-            flex-shrink: 0;
-        }
-
-        .legend-value {
-            color: var(--text-secondary);
-            margin-left: auto;
-            font-variant-numeric: tabular-nums;
-        }
-
-        /* Bar chart */
-        .bar-chart {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            padding: 10px 0;
-        }
-
-        .bar-row {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .bar-label {
-            width: 80px;
-            font-size: 12px;
-            color: var(--text-secondary);
-            text-align: right;
-            flex-shrink: 0;
-        }
-
-        .bar-track {
-            flex: 1;
-            height: 22px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 4px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .bar-fill {
-            height: 100%;
-            border-radius: 4px;
-            transition: width 0.6s ease;
-            display: flex;
-            align-items: center;
-            padding-left: 8px;
-            font-size: 11px;
-            font-weight: 600;
-            min-width: fit-content;
-        }
-
-        .bar-cost { background: rgba(74, 158, 255, 0.5); }
-        .bar-fmv { background: rgba(52, 211, 153, 0.5); }
-        .bar-proceeds { background: rgba(251, 191, 36, 0.5); }
-
-        /* Filter bar */
-        .filter-bar {
-            padding: 16px 40px;
-            display: flex;
-            gap: 12px;
-            align-items: center;
-        }
-
-        .filter-btn {
-            padding: 6px 16px;
-            border-radius: 20px;
-            border: 1px solid var(--border);
-            background: transparent;
-            color: var(--text-secondary);
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-
-        .filter-btn:hover, .filter-btn.active {
-            background: var(--accent-blue);
-            color: #fff;
-            border-color: var(--accent-blue);
-        }
-
-        .search-input {
-            margin-left: auto;
-            padding: 6px 14px;
-            border-radius: 20px;
-            border: 1px solid var(--border);
-            background: var(--bg-secondary);
-            color: var(--text-primary);
-            font-size: 12px;
-            width: 220px;
-            outline: none;
-        }
-
-        .search-input:focus {
-            border-color: var(--accent-blue);
-        }
-
-        /* Full width panel */
-        .full-width {
-            grid-column: 1 / -1;
-        }
-
-        /* ── Simulation Section ── */
-        .sim-section {
-            padding: 0 40px 40px;
-        }
-
-        .sim-toggle {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 16px 40px 0;
-        }
-
-        .sim-toggle-btn {
-            padding: 10px 24px;
-            border-radius: 8px;
-            border: 1px solid var(--accent-blue);
-            background: transparent;
-            color: var(--accent-blue);
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .sim-toggle-btn:hover, .sim-toggle-btn.active {
-            background: var(--accent-blue);
-            color: #fff;
-        }
-
-        .sim-toggle-label {
-            color: var(--text-secondary);
-            font-size: 13px;
-        }
-
-        .sim-hidden { display: none; }
-
-        .sim-controls {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            padding: 20px;
-        }
-
-        .sim-control-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .sim-control-group label {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            color: var(--text-secondary);
-        }
-
-        .sim-control-group .ctrl-row {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .sim-slider {
-            flex: 1;
-            -webkit-appearance: none;
-            appearance: none;
-            height: 6px;
-            border-radius: 3px;
-            background: var(--border);
-            outline: none;
-        }
-
-        .sim-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: var(--accent-blue);
-            cursor: pointer;
-            border: 2px solid var(--bg-card);
-        }
-
-        .sim-slider::-moz-range-thumb {
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: var(--accent-blue);
-            cursor: pointer;
-            border: 2px solid var(--bg-card);
-        }
-
-        .ctrl-value {
-            min-width: 55px;
-            text-align: center;
-            font-weight: 700;
-            font-size: 16px;
-            color: var(--accent-blue);
-        }
-
-        .sim-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            padding: 0 40px 40px;
-        }
-
-        .scenario-cards {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
-            padding: 20px;
-        }
-
-        .scenario-card {
-            border-radius: 8px;
-            padding: 16px;
-            text-align: center;
-            border: 1px solid var(--border);
-            transition: transform 0.15s;
-        }
-
-        .scenario-card:hover {
-            transform: translateY(-2px);
-        }
-
-        .scenario-card.bear {
-            background: rgba(248, 113, 113, 0.08);
-            border-color: rgba(248, 113, 113, 0.3);
-        }
-
-        .scenario-card.base {
-            background: rgba(251, 191, 36, 0.08);
-            border-color: rgba(251, 191, 36, 0.3);
-        }
-
-        .scenario-card.bull {
-            background: rgba(52, 211, 153, 0.08);
-            border-color: rgba(52, 211, 153, 0.3);
-        }
-
-        .scenario-label {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 6px;
-        }
-
-        .bear .scenario-label { color: var(--accent-red); }
-        .base .scenario-label { color: var(--accent-amber); }
-        .bull .scenario-label { color: var(--accent-green); }
-
-        .scenario-big {
-            font-size: 28px;
-            font-weight: 700;
-            margin: 4px 0;
-        }
-
-        .scenario-detail {
-            font-size: 12px;
-            color: var(--text-secondary);
-            line-height: 1.6;
-        }
-
-        .scenario-detail strong {
-            color: var(--text-primary);
-        }
-
-        .sim-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 12px;
-        }
-
-        .sim-table thead th {
-            padding: 10px 12px;
-            text-align: left;
-            font-weight: 600;
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-            color: var(--text-secondary);
-            border-bottom: 1px solid var(--border);
-            white-space: nowrap;
-        }
-
-        .sim-table tbody tr {
-            border-bottom: 1px solid var(--border);
-        }
-
-        .sim-table tbody tr:hover {
-            background: var(--bg-row-hover);
-        }
-
-        .sim-table td {
-            padding: 10px 12px;
-            white-space: nowrap;
-        }
-
-        .sim-table tfoot td {
-            padding: 10px 12px;
-            font-weight: 700;
-            border-top: 2px solid var(--border);
-            background: var(--bg-secondary);
-        }
-
-        /* Sensitivity matrix */
-        .sensitivity-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 11px;
-            text-align: center;
-        }
-
-        .sensitivity-table th, .sensitivity-table td {
-            padding: 8px 6px;
-            border: 1px solid var(--border);
-        }
-
-        .sensitivity-table th {
-            background: var(--bg-secondary);
-            color: var(--text-secondary);
-            font-size: 10px;
-            text-transform: uppercase;
-        }
-
-        .sensitivity-table .corner {
-            background: var(--bg-card);
-        }
-
-        .sensitivity-table td {
-            font-weight: 600;
-            font-variant-numeric: tabular-nums;
-        }
-
-        .cell-green { background: rgba(52, 211, 153, 0.12); color: var(--accent-green); }
-        .cell-light-green { background: rgba(52, 211, 153, 0.06); color: #6ee7b7; }
-        .cell-amber { background: rgba(251, 191, 36, 0.08); color: var(--accent-amber); }
-        .cell-red { background: rgba(248, 113, 113, 0.1); color: var(--accent-red); }
-
-        /* Responsive */
-        @media (max-width: 1200px) {
-            .content { grid-template-columns: 1fr; }
-            .kpi-bar { grid-template-columns: repeat(3, 1fr); }
-            .sim-grid { grid-template-columns: 1fr; }
-        }
-
-        @media (max-width: 768px) {
-            .kpi-bar { grid-template-columns: repeat(2, 1fr); }
-            .header { padding: 16px 20px; }
-            .kpi-bar, .content, .filter-bar, .sim-section, .sim-grid, .sim-toggle { padding-left: 20px; padding-right: 20px; }
-            .sim-controls { grid-template-columns: 1fr; }
-            .scenario-cards { grid-template-columns: 1fr; }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Segoe UI',system-ui,-apple-system,sans-serif; background:var(--bg-primary); color:var(--text-primary); min-height:100vh; }
+
+        .header { background:var(--bg-secondary); border-bottom:1px solid var(--border); padding:20px 40px; display:flex; justify-content:space-between; align-items:center; }
+        .header h1 { font-size:22px; font-weight:600; letter-spacing:0.5px; }
+        .header h1 span { color:var(--accent-blue); }
+        .header-meta { text-align:right; color:var(--text-secondary); font-size:13px; }
+        .header-meta strong { color:var(--text-primary); }
+
+        .kpi-bar { display:grid; grid-template-columns:repeat(5,1fr); gap:16px; padding:24px 40px; }
+        .kpi-card { background:var(--bg-card); border:1px solid var(--border); border-radius:10px; padding:20px; transition:transform 0.15s; }
+        .kpi-card:hover { transform:translateY(-2px); }
+        .kpi-label { font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-secondary); margin-bottom:8px; }
+        .kpi-value { font-size:26px; font-weight:700; }
+        .kpi-sub { font-size:12px; margin-top:6px; color:var(--text-secondary); }
+        .kpi-sub .positive { color:var(--accent-green); }
+        .kpi-sub .negative { color:var(--accent-red); }
+
+        .content { padding:0 40px 40px; display:grid; grid-template-columns:2fr 1fr; gap:20px; }
+        .panel { background:var(--bg-card); border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+        .panel-header { padding:16px 20px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+        .panel-title { font-size:15px; font-weight:600; }
+        .badge { font-size:11px; padding:3px 10px; border-radius:20px; background:rgba(74,158,255,0.15); color:var(--accent-blue); }
+
+        .portfolio-table { width:100%; border-collapse:collapse; font-size:13px; }
+        .portfolio-table thead th { padding:12px 16px; text-align:left; font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:0.8px; color:var(--text-secondary); border-bottom:1px solid var(--border); cursor:pointer; user-select:none; white-space:nowrap; }
+        .portfolio-table thead th:hover { color:var(--accent-blue); }
+        .portfolio-table thead th.sorted-asc::after { content:' \u25B2'; font-size:9px; }
+        .portfolio-table thead th.sorted-desc::after { content:' \u25BC'; font-size:9px; }
+        .portfolio-table tbody tr { border-bottom:1px solid var(--border); transition:background 0.1s; }
+        .portfolio-table tbody tr:hover { background:var(--bg-row-hover); }
+        .portfolio-table td { padding:14px 16px; white-space:nowrap; }
+
+        .company-cell { display:flex; align-items:center; gap:10px; }
+        .company-logo { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; flex-shrink:0; }
+        .company-info .name { font-weight:600; font-size:13px; }
+        .company-info .sector { font-size:11px; color:var(--text-secondary); }
+
+        .money { font-variant-numeric:tabular-nums; text-align:right; }
+        .positive-val { color:var(--accent-green); }
+        .negative-val { color:var(--accent-red); }
+        .moic-badge { display:inline-block; padding:3px 8px; border-radius:4px; font-size:12px; font-weight:600; }
+        .moic-high { background:rgba(52,211,153,0.15); color:var(--accent-green); }
+        .moic-mid { background:rgba(251,191,36,0.15); color:var(--accent-amber); }
+        .moic-low { background:rgba(248,113,113,0.15); color:var(--accent-red); }
+
+        .status-dot { width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:6px; }
+        .status-active { background:var(--accent-green); }
+        .status-realized { background:var(--accent-blue); }
+        .status-watchlist { background:var(--accent-amber); }
+
+        .charts-stack { display:flex; flex-direction:column; gap:20px; }
+        .chart-container { padding:20px; }
+        .donut-wrapper { display:flex; align-items:center; gap:24px; padding:10px 0; }
+        .donut-svg { width:140px; height:140px; flex-shrink:0; }
+        .donut-legend { display:flex; flex-direction:column; gap:8px; }
+        .legend-item { display:flex; align-items:center; gap:8px; font-size:12px; }
+        .legend-dot { width:10px; height:10px; border-radius:3px; flex-shrink:0; }
+        .legend-value { color:var(--text-secondary); margin-left:auto; font-variant-numeric:tabular-nums; }
+
+        .bar-chart { display:flex; flex-direction:column; gap:12px; padding:10px 0; }
+        .bar-row { display:flex; align-items:center; gap:12px; }
+        .bar-label { width:80px; font-size:12px; color:var(--text-secondary); text-align:right; flex-shrink:0; }
+        .bar-track { flex:1; height:22px; background:rgba(255,255,255,0.05); border-radius:4px; position:relative; overflow:hidden; }
+        .bar-fill { height:100%; border-radius:4px; transition:width 0.6s ease; display:flex; align-items:center; padding-left:8px; font-size:11px; font-weight:600; min-width:fit-content; }
+        .bar-cost { background:rgba(74,158,255,0.5); }
+        .bar-fmv { background:rgba(52,211,153,0.5); }
+        .bar-proceeds { background:rgba(251,191,36,0.5); }
+
+        .filter-bar { padding:16px 40px; display:flex; gap:12px; align-items:center; }
+        .filter-btn { padding:6px 16px; border-radius:20px; border:1px solid var(--border); background:transparent; color:var(--text-secondary); font-size:12px; cursor:pointer; transition:all 0.15s; }
+        .filter-btn:hover,.filter-btn.active { background:var(--accent-blue); color:#fff; border-color:var(--accent-blue); }
+        .search-input { margin-left:auto; padding:6px 14px; border-radius:20px; border:1px solid var(--border); background:var(--bg-secondary); color:var(--text-primary); font-size:12px; width:220px; outline:none; }
+        .search-input:focus { border-color:var(--accent-blue); }
+
+        /* ── Simulation ── */
+        .sim-toggle { display:flex; align-items:center; gap:12px; padding:16px 40px 0; }
+        .sim-toggle-btn { padding:10px 24px; border-radius:8px; border:1px solid var(--accent-blue); background:transparent; color:var(--accent-blue); font-size:14px; font-weight:600; cursor:pointer; transition:all 0.2s; -webkit-tap-highlight-color:rgba(74,158,255,0.3); }
+        .sim-toggle-btn:hover,.sim-toggle-btn.active { background:var(--accent-blue); color:#fff; }
+        .sim-toggle-label { color:var(--text-secondary); font-size:13px; }
+        .sim-section { padding:20px 40px; }
+        .sim-control-group { display:flex; flex-direction:column; gap:8px; }
+        .sim-control-group label { font-size:11px; text-transform:uppercase; letter-spacing:0.8px; color:var(--text-secondary); }
+        .ctrl-row { display:flex; align-items:center; gap:12px; }
+        .sim-slider { flex:1; -webkit-appearance:none; appearance:none; height:6px; border-radius:3px; background:var(--border); outline:none; }
+        .sim-slider::-webkit-slider-thumb { -webkit-appearance:none; width:18px; height:18px; border-radius:50%; background:var(--accent-blue); cursor:pointer; border:2px solid var(--bg-card); }
+        .ctrl-value { min-width:55px; text-align:center; font-weight:700; font-size:16px; color:var(--accent-blue); }
+
+        .scenario-cards { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; padding:20px; }
+        .scenario-card { border-radius:8px; padding:16px; text-align:center; border:1px solid var(--border); }
+        .scenario-card.bear { background:rgba(248,113,113,0.08); border-color:rgba(248,113,113,0.3); }
+        .scenario-card.base { background:rgba(251,191,36,0.08); border-color:rgba(251,191,36,0.3); }
+        .scenario-card.bull { background:rgba(52,211,153,0.08); border-color:rgba(52,211,153,0.3); }
+        .scenario-label { font-size:11px; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; }
+        .bear .scenario-label { color:var(--accent-red); }
+        .base .scenario-label { color:var(--accent-amber); }
+        .bull .scenario-label { color:var(--accent-green); }
+        .scenario-big { font-size:28px; font-weight:700; margin:4px 0; }
+        .scenario-detail { font-size:12px; color:var(--text-secondary); line-height:1.6; }
+        .scenario-detail strong { color:var(--text-primary); }
+
+        .sim-table { width:100%; border-collapse:collapse; font-size:12px; }
+        .sim-table thead th { padding:10px 12px; text-align:left; font-weight:600; font-size:10px; text-transform:uppercase; letter-spacing:0.6px; color:var(--text-secondary); border-bottom:1px solid var(--border); white-space:nowrap; }
+        .sim-table tbody tr { border-bottom:1px solid var(--border); }
+        .sim-table tbody tr:hover { background:var(--bg-row-hover); }
+        .sim-table td { padding:10px 12px; white-space:nowrap; }
+        .sim-table tfoot td { padding:10px 12px; font-weight:700; border-top:2px solid var(--border); background:var(--bg-secondary); }
+
+        .sim-input { width:60px; padding:4px 6px; border:1px solid var(--border); border-radius:4px; background:var(--bg-secondary); color:var(--accent-blue); font-size:13px; font-weight:600; text-align:center; outline:none; }
+        .sim-input:focus { border-color:var(--accent-blue); box-shadow:0 0 0 2px rgba(74,158,255,0.2); }
+        .sim-input-label { font-size:9px; color:var(--text-secondary); display:block; margin-top:2px; text-align:center; }
+
+        @media (max-width:1200px) {
+            .content { grid-template-columns:1fr; }
+            .kpi-bar { grid-template-columns:repeat(3,1fr); }
+            .scenario-cards { grid-template-columns:1fr; }
+        }
+        @media (max-width:768px) {
+            .kpi-bar { grid-template-columns:repeat(2,1fr); }
+            .header,.kpi-bar,.content,.filter-bar,.sim-section,.sim-toggle { padding-left:20px; padding-right:20px; }
+            .scenario-cards { grid-template-columns:1fr; }
         }
     </style>
 </head>
@@ -644,10 +152,8 @@
     </div>
 </div>
 
-<!-- KPI Bar -->
 <div class="kpi-bar" id="kpiBar"></div>
 
-<!-- Filters -->
 <div class="filter-bar">
     <button class="filter-btn active" data-filter="all">Tutti</button>
     <button class="filter-btn" data-filter="active">Attivi</button>
@@ -656,40 +162,32 @@
     <input class="search-input" type="text" placeholder="Cerca azienda..." id="searchInput">
 </div>
 
-<!-- Main content -->
 <div class="content">
-    <!-- Portfolio table -->
     <div class="panel">
         <div class="panel-header">
             <span class="panel-title">Dettaglio Portafoglio</span>
             <span class="badge" id="companyCount"></span>
         </div>
-        <div style="overflow-x: auto;">
+        <div style="overflow-x:auto;">
             <table class="portfolio-table">
-                <thead>
-                    <tr>
-                        <th data-sort="name">Azienda</th>
-                        <th data-sort="cost">Costo</th>
-                        <th data-sort="fmv">Fair Market Value</th>
-                        <th data-sort="pastProceeds">Past Proceeds</th>
-                        <th data-sort="totalValue">Valore Totale</th>
-                        <th data-sort="moic">MOIC</th>
-                        <th data-sort="irr">IRR</th>
-                        <th data-sort="status">Stato</th>
-                    </tr>
-                </thead>
+                <thead><tr>
+                    <th data-sort="name">Azienda</th>
+                    <th data-sort="cost">Costo</th>
+                    <th data-sort="fmv">Fair Market Value</th>
+                    <th data-sort="pastProceeds">Past Proceeds</th>
+                    <th data-sort="totalValue">Valore Totale</th>
+                    <th data-sort="moic">MOIC</th>
+                    <th data-sort="irr">IRR</th>
+                    <th data-sort="status">Stato</th>
+                </tr></thead>
                 <tbody id="portfolioBody"></tbody>
                 <tfoot id="portfolioFoot"></tfoot>
             </table>
         </div>
     </div>
-
-    <!-- Right charts -->
     <div class="charts-stack">
         <div class="panel">
-            <div class="panel-header">
-                <span class="panel-title">Allocazione per Settore (FMV)</span>
-            </div>
+            <div class="panel-header"><span class="panel-title">Allocazione per Settore (FMV)</span></div>
             <div class="chart-container">
                 <div class="donut-wrapper">
                     <svg class="donut-svg" viewBox="0 0 160 160" id="donutChart"></svg>
@@ -697,686 +195,392 @@
                 </div>
             </div>
         </div>
-
         <div class="panel">
-            <div class="panel-header">
-                <span class="panel-title">Cost vs FMV vs Proceeds</span>
-            </div>
-            <div class="chart-container">
-                <div class="bar-chart" id="barChart"></div>
-            </div>
+            <div class="panel-header"><span class="panel-title">Cost vs FMV vs Proceeds</span></div>
+            <div class="chart-container"><div class="bar-chart" id="barChart"></div></div>
         </div>
     </div>
 </div>
 
-<!-- ══════ SIMULATION SECTION ══════ -->
-<script>
-function toggleSim() {
-    var btn = document.getElementById('simToggle');
-    var sec = document.getElementById('simSection');
-    if (!btn || !sec) { alert('Errore: elementi non trovati'); return; }
-    btn.classList.toggle('active');
-    if (sec.style.display === 'none' || sec.style.display === '') {
-        sec.style.display = 'block';
-        if (typeof renderSimulation === 'function') renderSimulation();
-        sec.scrollIntoView({ behavior: 'smooth' });
-    } else {
-        sec.style.display = 'none';
-    }
-}
-</script>
+<!-- ══════ SIMULATION ══════ -->
 <div class="sim-toggle">
-    <button class="sim-toggle-btn" id="simToggle" onclick="toggleSim()">Simulazione Acquisto Portafoglio</button>
-    <span class="sim-toggle-label">Analizza i rendimenti potenziali se acquistassi il portafoglio</span>
+    <button class="sim-toggle-btn" id="simToggle">Simulazione Acquisto Portafoglio</button>
+    <span class="sim-toggle-label">Analizza i rendimenti se acquistassi il portafoglio</span>
 </div>
-
 <div id="simSection" style="display:none;">
-    <!-- Controls -->
     <div class="sim-section">
-        <div class="panel" style="margin-top:20px;">
+        <div class="panel">
             <div class="panel-header">
-                <span class="panel-title">Parametri di Acquisto</span>
+                <span class="panel-title">Sconto / Premio su NAV</span>
                 <span class="badge" id="simPurchasePrice"></span>
             </div>
-            <div class="sim-controls">
+            <div style="padding:20px;">
                 <div class="sim-control-group">
-                    <label>Sconto / Premio su FMV</label>
                     <div class="ctrl-row">
                         <input type="range" class="sim-slider" id="discountSlider" min="-50" max="30" value="-15" step="1">
                         <span class="ctrl-value" id="discountValue">-15%</span>
                     </div>
-                    <span style="font-size:11px;color:var(--text-secondary)">Negativo = sconto, Positivo = premio</span>
-                </div>
-                <div class="sim-control-group">
-                    <label>Holding Period (anni)</label>
-                    <div class="ctrl-row">
-                        <input type="range" class="sim-slider" id="holdingSlider" min="1" max="10" value="5" step="1">
-                        <span class="ctrl-value" id="holdingValue">5</span>
-                    </div>
-                    <span style="font-size:11px;color:var(--text-secondary)">Periodo previsto di detenzione</span>
-                </div>
-                <div class="sim-control-group">
-                    <label>Tasso di Crescita Annuo (Base)</label>
-                    <div class="ctrl-row">
-                        <input type="range" class="sim-slider" id="growthSlider" min="0" max="40" value="12" step="1">
-                        <span class="ctrl-value" id="growthValue">12%</span>
-                    </div>
-                    <span style="font-size:11px;color:var(--text-secondary)">CAGR atteso scenario base</span>
+                    <span style="font-size:11px;color:var(--text-secondary)">Negativo = sconto sul NAV, Positivo = premio</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Scenario cards + Sim table -->
-    <div class="sim-grid">
-        <!-- Scenarios -->
-        <div class="panel">
-            <div class="panel-header">
-                <span class="panel-title">Analisi Scenari</span>
-            </div>
-            <div class="scenario-cards" id="scenarioCards"></div>
-        </div>
-
-        <!-- Sensitivity matrix -->
-        <div class="panel">
-            <div class="panel-header">
-                <span class="panel-title">Matrice di Sensibilit&agrave; (MOIC)</span>
-                <span style="font-size:11px;color:var(--text-secondary)">Sconto vs Crescita</span>
-            </div>
-            <div style="padding:16px;overflow-x:auto;">
-                <table class="sensitivity-table" id="sensitivityTable"></table>
-            </div>
-        </div>
-    </div>
-
-    <!-- Per-company sim detail -->
     <div class="sim-section">
         <div class="panel">
             <div class="panel-header">
-                <span class="panel-title">Dettaglio Simulazione per Azienda</span>
-                <span class="badge">Scenario Base</span>
+                <span class="panel-title">Aspettative di Uscita per Azienda</span>
+                <span class="badge">Modifica MOIC e Anni</span>
             </div>
             <div style="overflow-x:auto;">
                 <table class="sim-table">
-                    <thead>
-                        <tr>
-                            <th>Azienda</th>
-                            <th>FMV Attuale</th>
-                            <th>Prezzo Acquisto</th>
-                            <th>Sconto Implicito</th>
-                            <th>Valore Uscita (Base)</th>
-                            <th>P&amp;L</th>
-                            <th>MOIC</th>
-                            <th>IRR</th>
-                        </tr>
-                    </thead>
+                    <thead><tr>
+                        <th>Azienda</th>
+                        <th>FMV Attuale</th>
+                        <th>Prezzo Acquisto</th>
+                        <th>MOIC Target</th>
+                        <th>Anni Uscita</th>
+                        <th>Valore Uscita</th>
+                        <th>P&amp;L</th>
+                        <th>IRR Implicito</th>
+                    </tr></thead>
                     <tbody id="simTableBody"></tbody>
                     <tfoot id="simTableFoot"></tfoot>
                 </table>
             </div>
         </div>
     </div>
+
+    <div style="padding:0 40px 20px; display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+        <div class="panel">
+            <div class="panel-header"><span class="panel-title">Scenari Aggregati</span></div>
+            <div class="scenario-cards" id="scenarioCards"></div>
+        </div>
+        <div class="panel">
+            <div class="panel-header"><span class="panel-title">Riepilogo Portafoglio Acquisto</span></div>
+            <div style="padding:20px;" id="summaryPanel"></div>
+        </div>
+    </div>
 </div>
 
 <script>
 // ── Data ──
-const portfolio = [
-    {
-        name: "TechVision AI",
-        sector: "Technology",
-        color: "#4a9eff",
-        investDate: "2021-03-15",
-        cost: 25000000,
-        fmv: 68000000,
-        pastProceeds: 5000000,
-        status: "active",
-        irr: 0.42
-    },
-    {
-        name: "MedLife Sciences",
-        sector: "Healthcare",
-        color: "#34d399",
-        investDate: "2021-06-20",
-        cost: 18000000,
-        fmv: 31500000,
-        pastProceeds: 3200000,
-        status: "active",
-        irr: 0.28
-    },
-    {
-        name: "GreenPower Energy",
-        sector: "Energy",
-        color: "#fbbf24",
-        investDate: "2021-09-10",
-        cost: 30000000,
-        fmv: 52000000,
-        pastProceeds: 8500000,
-        status: "active",
-        irr: 0.35
-    },
-    {
-        name: "FinEdge Capital",
-        sector: "Financial Services",
-        color: "#a78bfa",
-        investDate: "2022-01-05",
-        cost: 15000000,
-        fmv: 0,
-        pastProceeds: 38000000,
-        status: "realized",
-        irr: 0.51
-    },
-    {
-        name: "LogiChain Solutions",
-        sector: "Logistics",
-        color: "#f97316",
-        investDate: "2022-04-18",
-        cost: 22000000,
-        fmv: 29000000,
-        pastProceeds: 4000000,
-        status: "active",
-        irr: 0.19
-    },
-    {
-        name: "CloudServe Platform",
-        sector: "Technology",
-        color: "#06b6d4",
-        investDate: "2022-07-22",
-        cost: 20000000,
-        fmv: 45000000,
-        pastProceeds: 2000000,
-        status: "active",
-        irr: 0.38
-    },
-    {
-        name: "EduNext Global",
-        sector: "Education",
-        color: "#ec4899",
-        investDate: "2022-10-01",
-        cost: 12000000,
-        fmv: 9500000,
-        pastProceeds: 1000000,
-        status: "watchlist",
-        irr: -0.05
-    },
-    {
-        name: "AgroTech Industries",
-        sector: "Agriculture",
-        color: "#84cc16",
-        investDate: "2023-02-14",
-        cost: 16000000,
-        fmv: 21000000,
-        pastProceeds: 0,
-        status: "active",
-        irr: 0.22
-    },
-    {
-        name: "RetailMax Group",
-        sector: "Consumer",
-        color: "#f43f5e",
-        investDate: "2021-11-30",
-        cost: 28000000,
-        fmv: 0,
-        pastProceeds: 55000000,
-        status: "realized",
-        irr: 0.32
-    },
-    {
-        name: "CyberShield Security",
-        sector: "Technology",
-        color: "#8b5cf6",
-        investDate: "2023-05-08",
-        cost: 14000000,
-        fmv: 22500000,
-        pastProceeds: 0,
-        status: "active",
-        irr: 0.31
-    }
+var portfolio = [
+    { name:"TechVision AI", sector:"Technology", color:"#4a9eff", investDate:"2021-03-15", cost:25000000, fmv:68000000, pastProceeds:5000000, status:"active", irr:0.42, exitMoic:2.5, exitYears:3 },
+    { name:"MedLife Sciences", sector:"Healthcare", color:"#34d399", investDate:"2021-06-20", cost:18000000, fmv:31500000, pastProceeds:3200000, status:"active", irr:0.28, exitMoic:2.0, exitYears:4 },
+    { name:"GreenPower Energy", sector:"Energy", color:"#fbbf24", investDate:"2021-09-10", cost:30000000, fmv:52000000, pastProceeds:8500000, status:"active", irr:0.35, exitMoic:2.2, exitYears:3 },
+    { name:"FinEdge Capital", sector:"Financial Services", color:"#a78bfa", investDate:"2022-01-05", cost:15000000, fmv:0, pastProceeds:38000000, status:"realized", irr:0.51, exitMoic:0, exitYears:0 },
+    { name:"LogiChain Solutions", sector:"Logistics", color:"#f97316", investDate:"2022-04-18", cost:22000000, fmv:29000000, pastProceeds:4000000, status:"active", irr:0.19, exitMoic:1.8, exitYears:4 },
+    { name:"CloudServe Platform", sector:"Technology", color:"#06b6d4", investDate:"2022-07-22", cost:20000000, fmv:45000000, pastProceeds:2000000, status:"active", irr:0.38, exitMoic:2.3, exitYears:3 },
+    { name:"EduNext Global", sector:"Education", color:"#ec4899", investDate:"2022-10-01", cost:12000000, fmv:9500000, pastProceeds:1000000, status:"watchlist", irr:-0.05, exitMoic:1.2, exitYears:5 },
+    { name:"AgroTech Industries", sector:"Agriculture", color:"#84cc16", investDate:"2023-02-14", cost:16000000, fmv:21000000, pastProceeds:0, status:"active", irr:0.22, exitMoic:1.9, exitYears:5 },
+    { name:"RetailMax Group", sector:"Consumer", color:"#f43f5e", investDate:"2021-11-30", cost:28000000, fmv:0, pastProceeds:55000000, status:"realized", irr:0.32, exitMoic:0, exitYears:0 },
+    { name:"CyberShield Security", sector:"Technology", color:"#8b5cf6", investDate:"2023-05-08", cost:14000000, fmv:22500000, pastProceeds:0, status:"active", irr:0.31, exitMoic:2.1, exitYears:4 }
 ];
 
 // ── Helpers ──
 function fmt(val) {
-    if (val >= 1e9) return '\u20AC' + (val / 1e9).toFixed(1) + 'B';
-    if (val >= 1e6) return '\u20AC' + (val / 1e6).toFixed(1) + 'M';
-    if (val >= 1e3) return '\u20AC' + (val / 1e3).toFixed(0) + 'K';
+    if (Math.abs(val) >= 1e9) return '\u20AC' + (val/1e9).toFixed(1) + 'B';
+    if (Math.abs(val) >= 1e6) return '\u20AC' + (val/1e6).toFixed(1) + 'M';
+    if (Math.abs(val) >= 1e3) return '\u20AC' + (val/1e3).toFixed(0) + 'K';
     return '\u20AC' + val.toFixed(0);
 }
-
-function pct(val) {
-    return (val * 100).toFixed(1) + '%';
-}
-
-function totalValue(c) {
-    return c.fmv + c.pastProceeds;
-}
-
-function moic(c) {
-    return totalValue(c) / c.cost;
+function pct(val) { return (val*100).toFixed(1) + '%'; }
+function totalValue(c) { return c.fmv + c.pastProceeds; }
+function moic(c) { return totalValue(c) / c.cost; }
+function calcIRR(moicVal, years) {
+    if (moicVal <= 0 || years <= 0) return 0;
+    return Math.pow(moicVal, 1/years) - 1;
 }
 
 // ── State ──
-let currentFilter = 'all';
-let currentSort = { key: 'name', dir: 'asc' };
-let searchQuery = '';
+var currentFilter = 'all';
+var currentSort = { key:'name', dir:'asc' };
+var searchQuery = '';
+var simDiscount = -15;
 
 function getFiltered() {
-    return portfolio.filter(c => {
+    return portfolio.filter(function(c) {
         if (currentFilter !== 'all' && c.status !== currentFilter) return false;
-        if (searchQuery && !c.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-            !c.sector.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+        if (searchQuery && c.name.toLowerCase().indexOf(searchQuery.toLowerCase()) === -1 &&
+            c.sector.toLowerCase().indexOf(searchQuery.toLowerCase()) === -1) return false;
         return true;
     });
 }
 
 function getSorted(data) {
-    const arr = [...data];
-    const { key, dir } = currentSort;
-    arr.sort((a, b) => {
-        let va, vb;
-        switch (key) {
-            case 'name': va = a.name; vb = b.name; break;
-            case 'cost': va = a.cost; vb = b.cost; break;
-            case 'fmv': va = a.fmv; vb = b.fmv; break;
-            case 'pastProceeds': va = a.pastProceeds; vb = b.pastProceeds; break;
-            case 'totalValue': va = totalValue(a); vb = totalValue(b); break;
-            case 'moic': va = moic(a); vb = moic(b); break;
-            case 'irr': va = a.irr; vb = b.irr; break;
-            case 'status': va = a.status; vb = b.status; break;
-            default: va = a.name; vb = b.name;
+    var arr = data.slice();
+    var key = currentSort.key, dir = currentSort.dir;
+    arr.sort(function(a,b) {
+        var va, vb;
+        switch(key) {
+            case 'name': va=a.name; vb=b.name; break;
+            case 'cost': va=a.cost; vb=b.cost; break;
+            case 'fmv': va=a.fmv; vb=b.fmv; break;
+            case 'pastProceeds': va=a.pastProceeds; vb=b.pastProceeds; break;
+            case 'totalValue': va=totalValue(a); vb=totalValue(b); break;
+            case 'moic': va=moic(a); vb=moic(b); break;
+            case 'irr': va=a.irr; vb=b.irr; break;
+            case 'status': va=a.status; vb=b.status; break;
+            default: va=a.name; vb=b.name;
         }
-        if (typeof va === 'string') return dir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
-        return dir === 'asc' ? va - vb : vb - va;
+        if (typeof va === 'string') return dir==='asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+        return dir==='asc' ? va-vb : vb-va;
     });
     return arr;
 }
 
-// ── Render KPIs ──
+// ── KPIs ──
 function renderKPIs() {
-    const totCost = portfolio.reduce((s, c) => s + c.cost, 0);
-    const totFMV = portfolio.reduce((s, c) => s + c.fmv, 0);
-    const totProceeds = portfolio.reduce((s, c) => s + c.pastProceeds, 0);
-    const totVal = totFMV + totProceeds;
-    const grossMOIC = totVal / totCost;
-    const activeCount = portfolio.filter(c => c.status === 'active').length;
+    var totCost=0, totFMV=0, totProceeds=0, activeCount=0, realizedCount=0, irrSum=0;
+    for (var i=0; i<portfolio.length; i++) {
+        totCost += portfolio[i].cost;
+        totFMV += portfolio[i].fmv;
+        totProceeds += portfolio[i].pastProceeds;
+        irrSum += portfolio[i].irr;
+        if (portfolio[i].status==='active') activeCount++;
+        if (portfolio[i].status==='realized') realizedCount++;
+    }
+    var totVal = totFMV + totProceeds;
+    var grossMOIC = totVal / totCost;
 
-    const kpis = [
-        { label: 'Costo Totale', value: fmt(totCost), sub: `${portfolio.length} investimenti` },
-        { label: 'Fair Market Value', value: fmt(totFMV), sub: `${activeCount} attivi` },
-        { label: 'Past Proceeds', value: fmt(totProceeds), sub: `${portfolio.filter(c => c.status === 'realized').length} realizzati` },
-        { label: 'Valore Totale', value: fmt(totVal), sub: `<span class="${totVal > totCost ? 'positive' : 'negative'}">${totVal > totCost ? '+' : ''}${fmt(totVal - totCost)} P&L</span>` },
-        { label: 'Gross MOIC', value: grossMOIC.toFixed(2) + 'x', sub: `<span class="${grossMOIC > 1 ? 'positive' : 'negative'}">IRR medio: ${pct(portfolio.reduce((s, c) => s + c.irr, 0) / portfolio.length)}</span>` }
-    ];
-
-    document.getElementById('kpiBar').innerHTML = kpis.map(k => `
-        <div class="kpi-card">
-            <div class="kpi-label">${k.label}</div>
-            <div class="kpi-value">${k.value}</div>
-            <div class="kpi-sub">${k.sub}</div>
-        </div>
-    `).join('');
+    document.getElementById('kpiBar').innerHTML =
+        '<div class="kpi-card"><div class="kpi-label">Costo Totale</div><div class="kpi-value">'+fmt(totCost)+'</div><div class="kpi-sub">'+portfolio.length+' investimenti</div></div>' +
+        '<div class="kpi-card"><div class="kpi-label">Fair Market Value</div><div class="kpi-value">'+fmt(totFMV)+'</div><div class="kpi-sub">'+activeCount+' attivi</div></div>' +
+        '<div class="kpi-card"><div class="kpi-label">Past Proceeds</div><div class="kpi-value">'+fmt(totProceeds)+'</div><div class="kpi-sub">'+realizedCount+' realizzati</div></div>' +
+        '<div class="kpi-card"><div class="kpi-label">Valore Totale</div><div class="kpi-value">'+fmt(totVal)+'</div><div class="kpi-sub"><span class="'+(totVal>totCost?'positive':'negative')+'">'+(totVal>totCost?'+':'')+fmt(totVal-totCost)+' P&L</span></div></div>' +
+        '<div class="kpi-card"><div class="kpi-label">Gross MOIC</div><div class="kpi-value">'+grossMOIC.toFixed(2)+'x</div><div class="kpi-sub"><span class="'+(grossMOIC>1?'positive':'negative')+'">IRR medio: '+pct(irrSum/portfolio.length)+'</span></div></div>';
 }
 
-// ── Render Table ──
+// ── Table ──
 function renderTable() {
-    const data = getSorted(getFiltered());
+    var data = getSorted(getFiltered());
     document.getElementById('companyCount').textContent = data.length + ' aziende';
+    var statusMap = { active:['Attivo','status-active'], realized:['Realizzato','status-realized'], watchlist:['Watchlist','status-watchlist'] };
+    var html = '';
+    for (var i=0; i<data.length; i++) {
+        var c = data[i];
+        var tv = totalValue(c), m = moic(c);
+        var st = statusMap[c.status];
+        var mc = m>=2?'moic-high':m>=1?'moic-mid':'moic-low';
+        html += '<tr><td><div class="company-cell"><div class="company-logo" style="background:'+c.color+'22;color:'+c.color+'">'+c.name.charAt(0)+'</div><div class="company-info"><div class="name">'+c.name+'</div><div class="sector">'+c.sector+'</div></div></div></td>' +
+            '<td class="money">'+fmt(c.cost)+'</td><td class="money">'+fmt(c.fmv)+'</td><td class="money">'+fmt(c.pastProceeds)+'</td>' +
+            '<td class="money '+(tv>c.cost?'positive-val':tv<c.cost?'negative-val':'')+'">'+fmt(tv)+'</td>' +
+            '<td><span class="moic-badge '+mc+'">'+m.toFixed(2)+'x</span></td>' +
+            '<td class="'+(c.irr>=0?'positive-val':'negative-val')+'">'+pct(c.irr)+'</td>' +
+            '<td><span class="status-dot '+st[1]+'"></span>'+st[0]+'</td></tr>';
+    }
+    document.getElementById('portfolioBody').innerHTML = html;
 
-    const statusMap = {
-        active: ['Attivo', 'status-active'],
-        realized: ['Realizzato', 'status-realized'],
-        watchlist: ['Watchlist', 'status-watchlist']
-    };
+    var tC=0,tF=0,tP=0;
+    for (var i=0;i<data.length;i++){tC+=data[i].cost;tF+=data[i].fmv;tP+=data[i].pastProceeds;}
+    var tTV=tF+tP, tM=tC>0?tTV/tC:0;
+    document.getElementById('portfolioFoot').innerHTML = '<tr style="font-weight:700;border-top:2px solid var(--border);background:var(--bg-secondary);"><td>Totale ('+data.length+')</td><td class="money">'+fmt(tC)+'</td><td class="money">'+fmt(tF)+'</td><td class="money">'+fmt(tP)+'</td><td class="money '+(tTV>tC?'positive-val':'negative-val')+'">'+fmt(tTV)+'</td><td><span class="moic-badge '+(tM>=2?'moic-high':tM>=1?'moic-mid':'moic-low')+'">'+tM.toFixed(2)+'x</span></td><td colspan="2"></td></tr>';
 
-    document.getElementById('portfolioBody').innerHTML = data.map(c => {
-        const tv = totalValue(c);
-        const m = moic(c);
-        const [statusText, statusClass] = statusMap[c.status];
-        let moicClass = m >= 2 ? 'moic-high' : m >= 1 ? 'moic-mid' : 'moic-low';
-
-        return `<tr>
-            <td>
-                <div class="company-cell">
-                    <div class="company-logo" style="background:${c.color}22;color:${c.color}">${c.name.charAt(0)}</div>
-                    <div class="company-info">
-                        <div class="name">${c.name}</div>
-                        <div class="sector">${c.sector}</div>
-                    </div>
-                </div>
-            </td>
-            <td class="money">${fmt(c.cost)}</td>
-            <td class="money">${fmt(c.fmv)}</td>
-            <td class="money">${fmt(c.pastProceeds)}</td>
-            <td class="money ${tv > c.cost ? 'positive-val' : tv < c.cost ? 'negative-val' : ''}">${fmt(tv)}</td>
-            <td><span class="moic-badge ${moicClass}">${m.toFixed(2)}x</span></td>
-            <td class="${c.irr >= 0 ? 'positive-val' : 'negative-val'}">${pct(c.irr)}</td>
-            <td><span class="status-dot ${statusClass}"></span>${statusText}</td>
-        </tr>`;
-    }).join('');
-
-    // Footer totals
-    const totCost = data.reduce((s, c) => s + c.cost, 0);
-    const totFMV = data.reduce((s, c) => s + c.fmv, 0);
-    const totProceeds = data.reduce((s, c) => s + c.pastProceeds, 0);
-    const totTV = totFMV + totProceeds;
-    const totMOIC = totCost > 0 ? totTV / totCost : 0;
-
-    document.getElementById('portfolioFoot').innerHTML = `
-        <tr style="font-weight:700; border-top:2px solid var(--border); background:var(--bg-secondary);">
-            <td>Totale (${data.length})</td>
-            <td class="money">${fmt(totCost)}</td>
-            <td class="money">${fmt(totFMV)}</td>
-            <td class="money">${fmt(totProceeds)}</td>
-            <td class="money ${totTV > totCost ? 'positive-val' : 'negative-val'}">${fmt(totTV)}</td>
-            <td><span class="moic-badge ${totMOIC >= 2 ? 'moic-high' : totMOIC >= 1 ? 'moic-mid' : 'moic-low'}">${totMOIC.toFixed(2)}x</span></td>
-            <td colspan="2"></td>
-        </tr>`;
-
-    // Update sort indicators
-    document.querySelectorAll('.portfolio-table thead th').forEach(th => {
-        th.classList.remove('sorted-asc', 'sorted-desc');
-        if (th.dataset.sort === currentSort.key) {
-            th.classList.add(currentSort.dir === 'asc' ? 'sorted-asc' : 'sorted-desc');
-        }
-    });
+    var ths = document.querySelectorAll('.portfolio-table thead th');
+    for (var i=0;i<ths.length;i++) {
+        ths[i].classList.remove('sorted-asc','sorted-desc');
+        if (ths[i].getAttribute('data-sort') === currentSort.key)
+            ths[i].classList.add(currentSort.dir==='asc'?'sorted-asc':'sorted-desc');
+    }
 }
 
-// ── Render Donut Chart (Sector Allocation by FMV) ──
+// ── Donut ──
 function renderDonut() {
-    const sectorMap = {};
-    portfolio.forEach(c => {
-        if (c.fmv > 0) {
-            if (!sectorMap[c.sector]) sectorMap[c.sector] = { total: 0, color: c.color };
+    var sectorMap = {};
+    for (var i=0;i<portfolio.length;i++) {
+        var c=portfolio[i];
+        if (c.fmv>0) {
+            if (!sectorMap[c.sector]) sectorMap[c.sector]={total:0,color:c.color};
             sectorMap[c.sector].total += c.fmv;
         }
-    });
-
-    const sectors = Object.entries(sectorMap)
-        .map(([name, d]) => ({ name, ...d }))
-        .sort((a, b) => b.total - a.total);
-
-    const totalFMV = sectors.reduce((s, sec) => s + sec.total, 0);
-    const cx = 80, cy = 80, r = 60, innerR = 38;
-    let cumAngle = -Math.PI / 2;
-    let paths = '';
-
-    sectors.forEach(sec => {
-        const angle = (sec.total / totalFMV) * 2 * Math.PI;
-        const endAngle = cumAngle + angle;
-        const largeArc = angle > Math.PI ? 1 : 0;
-
-        const x1o = cx + r * Math.cos(cumAngle);
-        const y1o = cy + r * Math.sin(cumAngle);
-        const x2o = cx + r * Math.cos(endAngle);
-        const y2o = cy + r * Math.sin(endAngle);
-        const x1i = cx + innerR * Math.cos(endAngle);
-        const y1i = cy + innerR * Math.sin(endAngle);
-        const x2i = cx + innerR * Math.cos(cumAngle);
-        const y2i = cy + innerR * Math.sin(cumAngle);
-
-        paths += `<path d="M${x1o},${y1o} A${r},${r} 0 ${largeArc} 1 ${x2o},${y2o}
-            L${x1i},${y1i} A${innerR},${innerR} 0 ${largeArc} 0 ${x2i},${y2i} Z"
-            fill="${sec.color}" opacity="0.8"/>`;
-        cumAngle = endAngle;
-    });
-
-    // Center text
-    paths += `<text x="${cx}" y="${cy - 4}" text-anchor="middle" fill="var(--text-secondary)" font-size="9">FMV Totale</text>`;
-    paths += `<text x="${cx}" y="${cy + 14}" text-anchor="middle" fill="var(--text-primary)" font-size="14" font-weight="700">${fmt(totalFMV)}</text>`;
-
-    document.getElementById('donutChart').innerHTML = paths;
-
-    document.getElementById('donutLegend').innerHTML = sectors.map(sec => `
-        <div class="legend-item">
-            <div class="legend-dot" style="background:${sec.color}"></div>
-            <span>${sec.name}</span>
-            <span class="legend-value">${((sec.total / totalFMV) * 100).toFixed(0)}%</span>
-        </div>
-    `).join('');
+    }
+    var sectors=[]; for (var k in sectorMap) sectors.push({name:k,total:sectorMap[k].total,color:sectorMap[k].color});
+    sectors.sort(function(a,b){return b.total-a.total;});
+    var totalFMV=0; for(var i=0;i<sectors.length;i++) totalFMV+=sectors[i].total;
+    var cx=80,cy=80,r=60,ir=38,cum=-Math.PI/2,paths='';
+    for(var i=0;i<sectors.length;i++){
+        var ang=(sectors[i].total/totalFMV)*2*Math.PI, end=cum+ang, la=ang>Math.PI?1:0;
+        paths+='<path d="M'+(cx+r*Math.cos(cum))+','+(cy+r*Math.sin(cum))+' A'+r+','+r+' 0 '+la+' 1 '+(cx+r*Math.cos(end))+','+(cy+r*Math.sin(end))+' L'+(cx+ir*Math.cos(end))+','+(cy+ir*Math.sin(end))+' A'+ir+','+ir+' 0 '+la+' 0 '+(cx+ir*Math.cos(cum))+','+(cy+ir*Math.sin(cum))+' Z" fill="'+sectors[i].color+'" opacity="0.8"/>';
+        cum=end;
+    }
+    paths+='<text x="'+cx+'" y="'+(cy-4)+'" text-anchor="middle" fill="var(--text-secondary)" font-size="9">FMV Totale</text>';
+    paths+='<text x="'+cx+'" y="'+(cy+14)+'" text-anchor="middle" fill="var(--text-primary)" font-size="14" font-weight="700">'+fmt(totalFMV)+'</text>';
+    document.getElementById('donutChart').innerHTML=paths;
+    var lhtml='';
+    for(var i=0;i<sectors.length;i++) lhtml+='<div class="legend-item"><div class="legend-dot" style="background:'+sectors[i].color+'"></div><span>'+sectors[i].name+'</span><span class="legend-value">'+((sectors[i].total/totalFMV)*100).toFixed(0)+'%</span></div>';
+    document.getElementById('donutLegend').innerHTML=lhtml;
 }
 
-// ── Render Bar Chart (Top 5 by Total Value) ──
+// ── Bar Chart ──
 function renderBarChart() {
-    const top5 = [...portfolio]
-        .sort((a, b) => totalValue(b) - totalValue(a))
-        .slice(0, 5);
-
-    const maxVal = Math.max(...top5.map(c => Math.max(c.cost, c.fmv, c.pastProceeds)));
-
-    document.getElementById('barChart').innerHTML = top5.map(c => {
-        const costW = (c.cost / maxVal) * 100;
-        const fmvW = (c.fmv / maxVal) * 100;
-        const procW = (c.pastProceeds / maxVal) * 100;
-        const shortName = c.name.split(' ')[0];
-
-        return `
-        <div>
-            <div class="bar-row">
-                <div class="bar-label">${shortName}</div>
-                <div class="bar-track">
-                    <div class="bar-fill bar-cost" style="width:${costW}%">${fmt(c.cost)}</div>
-                </div>
-            </div>
-            <div class="bar-row">
-                <div class="bar-label" style="font-size:10px;color:var(--accent-blue)">Cost</div>
-                <div class="bar-track">
-                    <div class="bar-fill bar-fmv" style="width:${fmvW}%">${fmt(c.fmv)}</div>
-                </div>
-            </div>
-            <div class="bar-row">
-                <div class="bar-label" style="font-size:10px;color:var(--accent-green)">FMV</div>
-                <div class="bar-track">
-                    <div class="bar-fill bar-proceeds" style="width:${procW}%">${fmt(c.pastProceeds)}</div>
-                </div>
-            </div>
-        </div>`;
-    }).join('<div style="height:8px;border-bottom:1px solid var(--border);margin-bottom:8px"></div>');
-
-    // Legend
-    document.getElementById('barChart').innerHTML += `
-        <div style="display:flex;gap:20px;justify-content:center;margin-top:12px;font-size:11px;color:var(--text-secondary)">
-            <span><span style="display:inline-block;width:10px;height:10px;background:rgba(74,158,255,0.5);border-radius:2px;margin-right:4px"></span>Cost</span>
-            <span><span style="display:inline-block;width:10px;height:10px;background:rgba(52,211,153,0.5);border-radius:2px;margin-right:4px"></span>FMV</span>
-            <span><span style="display:inline-block;width:10px;height:10px;background:rgba(251,191,36,0.5);border-radius:2px;margin-right:4px"></span>Proceeds</span>
-        </div>`;
+    var sorted=portfolio.slice().sort(function(a,b){return totalValue(b)-totalValue(a);});
+    var top5=sorted.slice(0,5);
+    var maxVal=0;
+    for(var i=0;i<top5.length;i++) maxVal=Math.max(maxVal,top5[i].cost,top5[i].fmv,top5[i].pastProceeds);
+    var html='';
+    for(var i=0;i<top5.length;i++){
+        var c=top5[i], sn=c.name.split(' ')[0];
+        if(i>0) html+='<div style="height:8px;border-bottom:1px solid var(--border);margin-bottom:8px"></div>';
+        html+='<div><div class="bar-row"><div class="bar-label">'+sn+'</div><div class="bar-track"><div class="bar-fill bar-cost" style="width:'+(c.cost/maxVal*100)+'%">'+fmt(c.cost)+'</div></div></div>';
+        html+='<div class="bar-row"><div class="bar-label" style="font-size:10px;color:var(--accent-blue)">Cost</div><div class="bar-track"><div class="bar-fill bar-fmv" style="width:'+(c.fmv/maxVal*100)+'%">'+fmt(c.fmv)+'</div></div></div>';
+        html+='<div class="bar-row"><div class="bar-label" style="font-size:10px;color:var(--accent-green)">FMV</div><div class="bar-track"><div class="bar-fill bar-proceeds" style="width:'+(c.pastProceeds/maxVal*100)+'%">'+fmt(c.pastProceeds)+'</div></div></div></div>';
+    }
+    html+='<div style="display:flex;gap:20px;justify-content:center;margin-top:12px;font-size:11px;color:var(--text-secondary)"><span><span style="display:inline-block;width:10px;height:10px;background:rgba(74,158,255,0.5);border-radius:2px;margin-right:4px"></span>Cost</span><span><span style="display:inline-block;width:10px;height:10px;background:rgba(52,211,153,0.5);border-radius:2px;margin-right:4px"></span>FMV</span><span><span style="display:inline-block;width:10px;height:10px;background:rgba(251,191,36,0.5);border-radius:2px;margin-right:4px"></span>Proceeds</span></div>';
+    document.getElementById('barChart').innerHTML=html;
 }
 
 // ── Events ──
-// Filter buttons
-document.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        currentFilter = btn.dataset.filter;
+var filterBtns = document.querySelectorAll('.filter-btn');
+for (var i=0;i<filterBtns.length;i++) {
+    filterBtns[i].addEventListener('click', function() {
+        for(var j=0;j<filterBtns.length;j++) filterBtns[j].classList.remove('active');
+        this.classList.add('active');
+        currentFilter = this.getAttribute('data-filter');
         renderTable();
     });
-});
-
-// Search
-document.getElementById('searchInput').addEventListener('input', e => {
-    searchQuery = e.target.value;
-    renderTable();
-});
-
-// Sort
-document.querySelectorAll('.portfolio-table thead th').forEach(th => {
-    th.addEventListener('click', () => {
-        const key = th.dataset.sort;
-        if (!key) return;
-        if (currentSort.key === key) {
-            currentSort.dir = currentSort.dir === 'asc' ? 'desc' : 'asc';
-        } else {
-            currentSort = { key, dir: 'asc' };
-        }
+}
+document.getElementById('searchInput').addEventListener('input', function(e) { searchQuery=e.target.value; renderTable(); });
+var sortThs = document.querySelectorAll('.portfolio-table thead th');
+for (var i=0;i<sortThs.length;i++) {
+    sortThs[i].addEventListener('click', function() {
+        var key=this.getAttribute('data-sort');
+        if(!key) return;
+        if(currentSort.key===key) currentSort.dir=currentSort.dir==='asc'?'desc':'asc';
+        else currentSort={key:key,dir:'asc'};
         renderTable();
     });
-});
+}
 
 // ══════ SIMULATION MODULE ══════
+var simOpen = false;
 
-// Sim state
-let simDiscount = -15;  // % discount on FMV (negative = discount)
-let simHolding = 5;     // years
-let simGrowth = 12;     // % annual growth (base case)
+document.getElementById('simToggle').addEventListener('click', function() {
+    simOpen = !simOpen;
+    var sec = document.getElementById('simSection');
+    var btn = document.getElementById('simToggle');
+    if (simOpen) {
+        sec.style.display = 'block';
+        btn.classList.add('active');
+        renderSimulation();
+        setTimeout(function(){ sec.scrollIntoView({behavior:'smooth'}); }, 50);
+    } else {
+        sec.style.display = 'none';
+        btn.classList.remove('active');
+    }
+});
 
-// Toggle handled via inline onclick="toggleSim()"
-
-// Slider events
-document.getElementById('discountSlider').addEventListener('input', e => {
+document.getElementById('discountSlider').addEventListener('input', function(e) {
     simDiscount = parseInt(e.target.value);
-    document.getElementById('discountValue').textContent = (simDiscount > 0 ? '+' : '') + simDiscount + '%';
+    document.getElementById('discountValue').textContent = (simDiscount>0?'+':'') + simDiscount + '%';
     renderSimulation();
 });
 
-document.getElementById('holdingSlider').addEventListener('input', e => {
-    simHolding = parseInt(e.target.value);
-    document.getElementById('holdingValue').textContent = simHolding;
+function getActiveForSim() {
+    return portfolio.filter(function(c){ return c.status === 'active'; });
+}
+
+function onSimInputChange(companyName, field, value) {
+    var val = parseFloat(value);
+    if (isNaN(val) || val <= 0) return;
+    for (var i=0; i<portfolio.length; i++) {
+        if (portfolio[i].name === companyName) {
+            portfolio[i][field] = val;
+            break;
+        }
+    }
     renderSimulation();
-});
-
-document.getElementById('growthSlider').addEventListener('input', e => {
-    simGrowth = parseInt(e.target.value);
-    document.getElementById('growthValue').textContent = simGrowth + '%';
-    renderSimulation();
-});
-
-function getActivePortfolio() {
-    return portfolio.filter(c => c.status === 'active');
-}
-
-function calcPurchasePrice(company) {
-    return company.fmv * (1 + simDiscount / 100);
-}
-
-function calcExitValue(company, growthRate, years) {
-    return company.fmv * Math.pow(1 + growthRate / 100, years);
-}
-
-function calcIRR(purchase, exit, years) {
-    if (purchase <= 0 || years <= 0) return 0;
-    return Math.pow(exit / purchase, 1 / years) - 1;
 }
 
 function renderSimulation() {
-    const active = getActivePortfolio();
+    var active = getActiveForSim();
+    var totFMV=0, totPurchase=0, totExit=0;
 
-    // Total purchase price
-    const totalPurchase = active.reduce((s, c) => s + calcPurchasePrice(c), 0);
-    document.getElementById('simPurchasePrice').textContent = 'Prezzo totale: ' + fmt(totalPurchase);
-
-    renderScenarios(active, totalPurchase);
-    renderSensitivity(active);
-    renderSimTable(active);
-}
-
-function renderScenarios(active, totalPurchase) {
-    const scenarios = [
-        { key: 'bear', label: 'Bear Case', growth: Math.max(0, simGrowth - 8), color: 'var(--accent-red)' },
-        { key: 'base', label: 'Base Case', growth: simGrowth, color: 'var(--accent-amber)' },
-        { key: 'bull', label: 'Bull Case', growth: simGrowth + 8, color: 'var(--accent-green)' }
-    ];
-
-    document.getElementById('scenarioCards').innerHTML = scenarios.map(sc => {
-        const exitVal = active.reduce((s, c) => s + calcExitValue(c, sc.growth, simHolding), 0);
-        const pl = exitVal - totalPurchase;
-        const scenarioMOIC = totalPurchase > 0 ? exitVal / totalPurchase : 0;
-        const scenarioIRR = calcIRR(totalPurchase, exitVal, simHolding);
-
-        return `
-        <div class="scenario-card ${sc.key}">
-            <div class="scenario-label">${sc.label}</div>
-            <div class="scenario-big">${scenarioMOIC.toFixed(2)}x</div>
-            <div class="scenario-detail">
-                Crescita: <strong>${sc.growth}% p.a.</strong><br>
-                Valore Uscita: <strong>${fmt(exitVal)}</strong><br>
-                P&L: <strong style="color:${pl >= 0 ? 'var(--accent-green)' : 'var(--accent-red)'}">${pl >= 0 ? '+' : ''}${fmt(pl)}</strong><br>
-                IRR: <strong>${pct(scenarioIRR)}</strong><br>
-                Holding: <strong>${simHolding} anni</strong>
-            </div>
-        </div>`;
-    }).join('');
-}
-
-function renderSensitivity(active) {
-    const discounts = [-30, -20, -15, -10, 0, 10];
-    const growths = [4, 8, 12, 16, 20, 25];
-
-    let html = '<thead><tr><th class="corner">Sconto \\ Crescita</th>';
-    growths.forEach(g => { html += `<th>${g}%</th>`; });
-    html += '</tr></thead><tbody>';
-
-    discounts.forEach(d => {
-        html += `<tr><th>${(d > 0 ? '+' : '') + d}%</th>`;
-        growths.forEach(g => {
-            const totPurchase = active.reduce((s, c) => s + c.fmv * (1 + d / 100), 0);
-            const totExit = active.reduce((s, c) => s + c.fmv * Math.pow(1 + g / 100, simHolding), 0);
-            const m = totPurchase > 0 ? totExit / totPurchase : 0;
-
-            let cellClass = 'cell-red';
-            if (m >= 3) cellClass = 'cell-green';
-            else if (m >= 2) cellClass = 'cell-light-green';
-            else if (m >= 1) cellClass = 'cell-amber';
-
-            const isActive = d === simDiscount && g === simGrowth;
-            const border = isActive ? 'outline:2px solid var(--accent-blue);outline-offset:-2px;' : '';
-
-            html += `<td class="${cellClass}" style="${border}">${m.toFixed(2)}x</td>`;
-        });
-        html += '</tr>';
-    });
-
-    html += '</tbody>';
-    document.getElementById('sensitivityTable').innerHTML = html;
-}
-
-function renderSimTable(active) {
-    let totFMV = 0, totPurchase = 0, totExit = 0;
-
-    document.getElementById('simTableBody').innerHTML = active.map(c => {
-        const purchase = calcPurchasePrice(c);
-        const exit = calcExitValue(c, simGrowth, simHolding);
-        const pl = exit - purchase;
-        const m = purchase > 0 ? exit / purchase : 0;
-        const irr = calcIRR(purchase, exit, simHolding);
-        const implicitDiscount = ((purchase - c.fmv) / c.fmv) * 100;
+    var html = '';
+    for (var i=0; i<active.length; i++) {
+        var c = active[i];
+        var purchase = c.fmv * (1 + simDiscount/100);
+        var exitVal = purchase * c.exitMoic;
+        var pl = exitVal - purchase;
+        var irr = calcIRR(c.exitMoic, c.exitYears);
 
         totFMV += c.fmv;
         totPurchase += purchase;
-        totExit += exit;
+        totExit += exitVal;
 
-        return `<tr>
-            <td>
-                <div class="company-cell">
-                    <div class="company-logo" style="background:${c.color}22;color:${c.color}">${c.name.charAt(0)}</div>
-                    <div class="company-info">
-                        <div class="name">${c.name}</div>
-                        <div class="sector">${c.sector}</div>
-                    </div>
-                </div>
-            </td>
-            <td class="money">${fmt(c.fmv)}</td>
-            <td class="money">${fmt(purchase)}</td>
-            <td class="money" style="color:${implicitDiscount <= 0 ? 'var(--accent-green)' : 'var(--accent-red)'}">${implicitDiscount > 0 ? '+' : ''}${implicitDiscount.toFixed(1)}%</td>
-            <td class="money">${fmt(exit)}</td>
-            <td class="money ${pl >= 0 ? 'positive-val' : 'negative-val'}">${pl >= 0 ? '+' : ''}${fmt(pl)}</td>
-            <td><span class="moic-badge ${m >= 2 ? 'moic-high' : m >= 1 ? 'moic-mid' : 'moic-low'}">${m.toFixed(2)}x</span></td>
-            <td class="${irr >= 0 ? 'positive-val' : 'negative-val'}">${pct(irr)}</td>
-        </tr>`;
-    }).join('');
+        html += '<tr>' +
+            '<td><div class="company-cell"><div class="company-logo" style="background:'+c.color+'22;color:'+c.color+'">'+c.name.charAt(0)+'</div><div class="company-info"><div class="name">'+c.name+'</div><div class="sector">'+c.sector+'</div></div></div></td>' +
+            '<td class="money">'+fmt(c.fmv)+'</td>' +
+            '<td class="money">'+fmt(purchase)+'</td>' +
+            '<td style="text-align:center"><input class="sim-input" type="number" min="0.5" max="10" step="0.1" value="'+c.exitMoic.toFixed(1)+'" onchange="onSimInputChange(\''+c.name.replace(/'/g,"\\'")+'\',\'exitMoic\',this.value)"><div class="sim-input-label">multiplo</div></td>' +
+            '<td style="text-align:center"><input class="sim-input" type="number" min="1" max="15" step="1" value="'+c.exitYears+'" onchange="onSimInputChange(\''+c.name.replace(/'/g,"\\'")+'\',\'exitYears\',this.value)"><div class="sim-input-label">anni</div></td>' +
+            '<td class="money">'+fmt(exitVal)+'</td>' +
+            '<td class="money '+(pl>=0?'positive-val':'negative-val')+'">'+(pl>=0?'+':'')+fmt(pl)+'</td>' +
+            '<td class="'+(irr>=0?'positive-val':'negative-val')+'">'+pct(irr)+'</td>' +
+            '</tr>';
+    }
+    document.getElementById('simTableBody').innerHTML = html;
 
-    const totPL = totExit - totPurchase;
-    const totMOIC = totPurchase > 0 ? totExit / totPurchase : 0;
-    const totIRR = calcIRR(totPurchase, totExit, simHolding);
+    var totPL = totExit - totPurchase;
+    var totMOIC = totPurchase>0 ? totExit/totPurchase : 0;
+    var avgYears = 0;
+    for(var i=0;i<active.length;i++) avgYears += active[i].exitYears;
+    avgYears = active.length>0 ? avgYears/active.length : 1;
+    var totIRR = calcIRR(totMOIC, avgYears);
 
-    document.getElementById('simTableFoot').innerHTML = `
-        <tr>
-            <td>Totale Portafoglio</td>
-            <td class="money">${fmt(totFMV)}</td>
-            <td class="money">${fmt(totPurchase)}</td>
-            <td class="money" style="color:${simDiscount <= 0 ? 'var(--accent-green)' : 'var(--accent-red)'}">${simDiscount > 0 ? '+' : ''}${simDiscount}%</td>
-            <td class="money">${fmt(totExit)}</td>
-            <td class="money ${totPL >= 0 ? 'positive-val' : 'negative-val'}">${totPL >= 0 ? '+' : ''}${fmt(totPL)}</td>
-            <td><span class="moic-badge ${totMOIC >= 2 ? 'moic-high' : totMOIC >= 1 ? 'moic-mid' : 'moic-low'}">${totMOIC.toFixed(2)}x</span></td>
-            <td class="${totIRR >= 0 ? 'positive-val' : 'negative-val'}">${pct(totIRR)}</td>
-        </tr>`;
+    document.getElementById('simTableFoot').innerHTML =
+        '<tr><td>Totale Portafoglio</td><td class="money">'+fmt(totFMV)+'</td><td class="money">'+fmt(totPurchase)+'</td>' +
+        '<td style="text-align:center;font-weight:700">'+totMOIC.toFixed(2)+'x</td>' +
+        '<td style="text-align:center;font-weight:700">~'+avgYears.toFixed(1)+' avg</td>' +
+        '<td class="money">'+fmt(totExit)+'</td>' +
+        '<td class="money '+(totPL>=0?'positive-val':'negative-val')+'">'+(totPL>=0?'+':'')+fmt(totPL)+'</td>' +
+        '<td class="'+(totIRR>=0?'positive-val':'negative-val')+'">'+pct(totIRR)+'</td></tr>';
+
+    document.getElementById('simPurchasePrice').textContent = 'Acquisto: ' + fmt(totPurchase);
+
+    // Scenarios: bear = each MOIC * 0.7, base = as-is, bull = each MOIC * 1.3
+    var scenarios = [
+        {key:'bear', label:'Bear Case', mult:0.7},
+        {key:'base', label:'Base Case', mult:1.0},
+        {key:'bull', label:'Bull Case', mult:1.3}
+    ];
+    var shtml = '';
+    for (var s=0; s<scenarios.length; s++) {
+        var sc = scenarios[s];
+        var scExit=0, scAvgY=0;
+        for(var i=0;i<active.length;i++){
+            var p = active[i].fmv*(1+simDiscount/100);
+            scExit += p * active[i].exitMoic * sc.mult;
+            scAvgY += active[i].exitYears;
+        }
+        scAvgY = active.length>0 ? scAvgY/active.length : 1;
+        var scPL = scExit - totPurchase;
+        var scMOIC = totPurchase>0 ? scExit/totPurchase : 0;
+        var scIRR = calcIRR(scMOIC, scAvgY);
+
+        shtml += '<div class="scenario-card '+sc.key+'">' +
+            '<div class="scenario-label">'+sc.label+'</div>' +
+            '<div class="scenario-big">'+scMOIC.toFixed(2)+'x</div>' +
+            '<div class="scenario-detail">' +
+            'Uscita: <strong>'+fmt(scExit)+'</strong><br>' +
+            'P&L: <strong style="color:'+(scPL>=0?'var(--accent-green)':'var(--accent-red)')+'">'+(scPL>=0?'+':'')+fmt(scPL)+'</strong><br>' +
+            'IRR: <strong>'+pct(scIRR)+'</strong><br>' +
+            'MOIC mult: <strong>'+sc.mult+'x</strong>' +
+            '</div></div>';
+    }
+    document.getElementById('scenarioCards').innerHTML = shtml;
+
+    // Summary panel
+    document.getElementById('summaryPanel').innerHTML =
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">' +
+        '<div><div class="kpi-label">NAV Portafoglio</div><div style="font-size:20px;font-weight:700">'+fmt(totFMV)+'</div></div>' +
+        '<div><div class="kpi-label">Prezzo Acquisto</div><div style="font-size:20px;font-weight:700">'+fmt(totPurchase)+'</div></div>' +
+        '<div><div class="kpi-label">Sconto su NAV</div><div style="font-size:20px;font-weight:700;color:'+(simDiscount<=0?'var(--accent-green)':'var(--accent-red)')+'">'+(simDiscount>0?'+':'')+simDiscount+'%</div></div>' +
+        '<div><div class="kpi-label">Valore Uscita (Base)</div><div style="font-size:20px;font-weight:700">'+fmt(totExit)+'</div></div>' +
+        '<div><div class="kpi-label">MOIC Portafoglio</div><div style="font-size:20px;font-weight:700;color:'+(totMOIC>=1?'var(--accent-green)':'var(--accent-red)')+'">'+totMOIC.toFixed(2)+'x</div></div>' +
+        '<div><div class="kpi-label">IRR Portafoglio</div><div style="font-size:20px;font-weight:700;color:'+(totIRR>=0?'var(--accent-green)':'var(--accent-red)')+'">'+pct(totIRR)+'</div></div>' +
+        '<div style="grid-column:1/-1"><div class="kpi-label">P&L Totale</div><div style="font-size:24px;font-weight:700;color:'+(totPL>=0?'var(--accent-green)':'var(--accent-red)')+'">'+(totPL>=0?'+':'')+fmt(totPL)+'</div></div>' +
+        '</div>';
 }
 
 // ── Init ──
