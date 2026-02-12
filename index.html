@@ -710,12 +710,27 @@
 </div>
 
 <!-- ══════ SIMULATION SECTION ══════ -->
+<script>
+function toggleSim() {
+    var btn = document.getElementById('simToggle');
+    var sec = document.getElementById('simSection');
+    if (!btn || !sec) { alert('Errore: elementi non trovati'); return; }
+    btn.classList.toggle('active');
+    if (sec.style.display === 'none' || sec.style.display === '') {
+        sec.style.display = 'block';
+        if (typeof renderSimulation === 'function') renderSimulation();
+        sec.scrollIntoView({ behavior: 'smooth' });
+    } else {
+        sec.style.display = 'none';
+    }
+}
+</script>
 <div class="sim-toggle">
-    <button class="sim-toggle-btn" id="simToggle">Simulazione Acquisto Portafoglio</button>
+    <button class="sim-toggle-btn" id="simToggle" onclick="toggleSim()">Simulazione Acquisto Portafoglio</button>
     <span class="sim-toggle-label">Analizza i rendimenti potenziali se acquistassi il portafoglio</span>
 </div>
 
-<div id="simSection" class="sim-hidden">
+<div id="simSection" style="display:none;">
     <!-- Controls -->
     <div class="sim-section">
         <div class="panel" style="margin-top:20px;">
@@ -1202,16 +1217,7 @@ let simDiscount = -15;  // % discount on FMV (negative = discount)
 let simHolding = 5;     // years
 let simGrowth = 12;     // % annual growth (base case)
 
-const simToggleBtn = document.getElementById('simToggle');
-const simSection = document.getElementById('simSection');
-
-simToggleBtn.addEventListener('click', () => {
-    simToggleBtn.classList.toggle('active');
-    simSection.classList.toggle('sim-hidden');
-    if (!simSection.classList.contains('sim-hidden')) {
-        renderSimulation();
-    }
-});
+// Toggle handled via inline onclick="toggleSim()"
 
 // Slider events
 document.getElementById('discountSlider').addEventListener('input', e => {
