@@ -84,6 +84,8 @@
   #form .row > label { flex: 1 1 140px; }
   #form .row > label.wide { flex: 3 1 240px; }
   .muted { color: var(--muted); font-size: 12px; }
+  .msg { font-size: 13px; padding: 8px 12px; border-radius: 8px; background: color-mix(in srgb, var(--out) 12%, transparent); color: var(--out); }
+  .msg.ok { background: color-mix(in srgb, var(--in) 12%, transparent); color: var(--in); }
   dialog { border: 1px solid var(--border); border-radius: 12px; padding: 20px; background: var(--card); color: var(--text); max-width: 420px; width: calc(100% - 32px); }
   dialog::backdrop { background: rgba(0,0,0,.4); }
   dialog .row > label { flex: 1 1 100%; }
@@ -105,6 +107,7 @@
 </header>
 
 <main>
+  <div id="notice" class="msg" hidden></div>
   <!-- Filtres période -->
   <section class="card">
     <div class="filters">
@@ -137,7 +140,7 @@
     <h2 id="formTitle">Nouveau mouvement</h2>
     <form id="movForm">
       <div class="row">
-        <label>Date <input type="date" id="mDate" required></label>
+        <label>Date <input type="date" id="mDate"></label>
         <label>Type
           <select id="mType">
             <option value="in">Recette</option>
@@ -147,12 +150,13 @@
         </label>
         <label><span id="mAccLabel">Caisse / Compte</span> <select id="mAcc"></select></label>
         <label id="mToWrap" hidden>Vers <select id="mTo"></select></label>
-        <label>Montant (CHF) <input type="number" id="mAmount" step="0.01" min="0.01" required></label>
+        <label>Montant (CHF) <input type="text" inputmode="decimal" id="mAmount" placeholder="0.00" autocomplete="off"></label>
         <label>Catégorie <input id="mCat" list="catList" placeholder="ex. Cotisations"></label>
         <label class="wide">Description <input id="mDesc" placeholder="Détails (facultatif)"></label>
-        <button class="primary" type="submit" id="mSubmit">Ajouter</button>
+        <button class="primary" type="button" id="mSubmit">Ajouter</button>
         <button type="button" id="mCancel" hidden>Annuler</button>
       </div>
+      <div id="mMsg" class="msg" hidden style="margin-top:10px"></div>
       <datalist id="catList"></datalist>
     </form>
   </section>
@@ -199,12 +203,11 @@
 <dialog id="dlgSaldi">
   <h2>Soldes initiaux</h2>
   <p class="muted" style="margin-bottom:12px">Le solde de chaque caisse avant le premier mouvement enregistré.</p>
-  <form method="dialog" id="saldiForm"><div class="row" id="saldiFields"></div>
-    <div class="row" style="margin-top:14px;justify-content:flex-end">
-      <button value="cancel">Annuler</button>
-      <button class="primary" value="ok">Enregistrer</button>
-    </div>
-  </form>
+  <div class="row" id="saldiFields"></div>
+  <div class="row" style="margin-top:14px;justify-content:flex-end">
+    <button type="button" id="saldiCancel">Annuler</button>
+    <button type="button" class="primary" id="saldiOk">Enregistrer</button>
+  </div>
 </dialog>
 
 <script>
@@ -220,6 +223,16 @@ const STORE_KEY = 'bioevents-casse-v1';
 let state = load();
 let editingId = null;
 
+// Pas d'alert()/confirm() : ils sont bloqués sans message dans certains aperçus (iframes sandbox).
+function notify(text, ok) {
+  const n = document.getElementById('notice');
+  n.textContent = text; n.className = ok ? 'msg ok' : 'msg'; n.hidden = false;
+  clearTimeout(notify.t);
+  if (ok) notify.t = setTimeout(() => n.hidden = true, 4000);
+}
+// Accepte « 12.50 », « 12,50 », « 1'250.00 », « 1 250 »
+const parseAmount = v => parseFloat(String(v).replace(/[\s'’]/g, '').replace(',', '.'));
+
 function load() {
   try {
     const s = JSON.parse(localStorage.getItem(STORE_KEY));
@@ -228,7 +241,8 @@ function load() {
   return { initial: {}, movements: [] };
 }
 function save() {
-  try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) { alert('Impossible d’enregistrer les données dans le navigateur.'); }
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+  catch (e) { notify('Attention : ce navigateur ne permet pas d’enregistrer les données. Ouvrez le fichier directement dans Chrome, Firefox ou Safari, ou utilisez « Sauvegarde » avant de fermer la page.'); }
 }
 
 const chf = new Intl.NumberFormat('fr-CH', { style: 'currency', currency: 'CHF' });
@@ -399,13 +413,17 @@ function resetForm() {
   $('formTitle').textContent = 'Nouveau mouvement';
   $('mSubmit').textContent = 'Ajouter';
   $('mCancel').hidden = true;
+  formError('');
   syncType();
 }
 
-$('movForm').onsubmit = e => {
-  e.preventDefault();
-  const amount = Math.round(parseFloat($('mAmount').value) * 100) / 100;
-  if (!(amount > 0)) return;
+function formError(text) { $('mMsg').textContent = text; $('mMsg').hidden = !text; }
+function submitMov() {
+  const amount = Math.round(parseAmount($('mAmount').value) * 100) / 100;
+  if (!$('mDate').value) return formError('Indiquez une date.');
+  if (!(amount > 0)) { $('mAmount').focus(); return formError('Indiquez un montant valide (ex. 12.50).'); }
+  if ($('mType').value === 'transfer' && $('mTo').value === $('mAcc').value) return formError('Choisissez deux caisses différentes.');
+  formError('');
   const m = {
     id: editingId || uid(),
     date: $('mDate').value,
@@ -419,14 +437,22 @@ $('movForm').onsubmit = e => {
   if (editingId) state.movements = state.movements.map(x => x.id === editingId ? m : x);
   else state.movements.push(m);
   save(); resetForm(); render();
-};
+}
+$('mSubmit').onclick = submitMov;
+$('movForm').onsubmit = e => { e.preventDefault(); submitMov(); };
 $('mCancel').onclick = resetForm;
 
 $('movBody').onclick = e => {
   const ed = e.target.dataset.edit, del = e.target.dataset.del;
-  if (del && confirm('Supprimer ce mouvement ?')) {
-    state.movements = state.movements.filter(m => m.id !== del);
-    save(); render();
+  if (del) {
+    if (e.target.dataset.armed) {
+      state.movements = state.movements.filter(m => m.id !== del);
+      save(); render();
+    } else {
+      e.target.dataset.armed = '1';
+      e.target.textContent = 'Confirmer ?';
+      setTimeout(() => { if (e.target.isConnected) { delete e.target.dataset.armed; e.target.textContent = 'Supprimer'; } }, 3000);
+    }
   }
   if (ed) {
     const m = state.movements.find(x => x.id === ed); if (!m) return;
@@ -449,12 +475,13 @@ $('tAcc').onchange = $('tType').onchange = $('tSearch').oninput = render;
 // ---------- Soldes initiaux ----------
 $('btnSaldi').onclick = () => {
   $('saldiFields').innerHTML = ACCOUNTS.map(a => `<label>${a.name}
-    <input type="number" step="0.01" name="${a.id}" value="${+state.initial[a.id] || 0}"></label>`).join('');
+    <input type="text" inputmode="decimal" id="saldo-${a.id}" value="${+state.initial[a.id] || 0}"></label>`).join('');
   $('dlgSaldi').showModal();
 };
-$('dlgSaldi').onclose = () => {
-  if ($('dlgSaldi').returnValue !== 'ok') return;
-  for (const a of ACCOUNTS) state.initial[a.id] = parseFloat($('saldiForm').elements[a.id].value) || 0;
+$('saldiCancel').onclick = () => $('dlgSaldi').close();
+$('saldiOk').onclick = () => {
+  for (const a of ACCOUNTS) state.initial[a.id] = parseAmount($('saldo-' + a.id).value) || 0;
+  $('dlgSaldi').close();
   save(); render();
 };
 
@@ -471,10 +498,10 @@ $('fileImport').onchange = async e => {
   try {
     const data = JSON.parse(await f.text());
     if (!Array.isArray(data.movements)) throw new Error();
-    if (!confirm(`Restaurer ${data.movements.length} mouvements ? Les données actuelles seront remplacées.`)) return;
     state = { initial: data.initial || {}, movements: data.movements };
     save(); render();
-  } catch { alert('Fichier non valide.'); }
+    notify(`${data.movements.length} mouvements restaurés.`, true);
+  } catch { notify('Fichier non valide.'); }
   e.target.value = '';
 };
 $('btnCsv').onclick = () => {
