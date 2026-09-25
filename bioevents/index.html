@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bioevents · Caisses</title>
+<title>Caisses Bioevents</title>
 <style>
   :root {
     --bg: #f4f6f3;
@@ -21,12 +21,20 @@
     --shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 14px rgba(0,0,0,.04);
   }
   @media (prefers-color-scheme: dark) {
-    :root {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
       --bg: #121614; --card: #1b211e; --text: #e6ece8; --muted: #93a098;
       --border: #2c3530; --accent: #52b77b; --in: #4cc47f; --out: #ef6b5d;
       --nera: #d9d9d9; --grigia: #9aa3ab; --verde: #52c07c; --banca: #5b9be0;
       --shadow: none;
     }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #121614; --card: #1b211e; --text: #e6ece8; --muted: #93a098;
+    --border: #2c3530; --accent: #52b77b; --in: #4cc47f; --out: #ef6b5d;
+    --nera: #d9d9d9; --grigia: #9aa3ab; --verde: #52c07c; --banca: #5b9be0;
+    --shadow: none;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   [hidden] { display: none !important; }
@@ -35,6 +43,10 @@
   header h1 { font-size: 20px; font-weight: 650; }
   header h1 span { color: var(--accent); }
   header .sub { color: var(--muted); font-size: 13px; }
+  .mode { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 12px; color: var(--muted); }
+  .mode::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+  .mode.shared::before { background: var(--in); }
+  body.readonly .write-only { display: none !important; }
   main { max-width: 1200px; margin: 0 auto; padding: 20px 16px 60px; display: grid; gap: 20px; }
   .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px; box-shadow: var(--shadow); }
   h2 { font-size: 15px; font-weight: 650; margin-bottom: 12px; }
@@ -98,12 +110,13 @@
   <div>
     <h1>Association <span>Bioevents</span></h1>
     <div class="sub">Aperçu des recettes et dépenses · Caisse Noire, Grise, Verte et Compte bancaire</div>
+    <div class="mode" id="mode">Données enregistrées dans ce navigateur</div>
   </div>
   <div class="row">
-    <button id="btnSaldi">Soldes initiaux</button>
+    <button id="btnSaldi" class="write-only">Soldes initiaux</button>
     <button id="btnCsv">Exporter CSV</button>
     <button id="btnExport">Sauvegarde</button>
-    <button id="btnImport">Restaurer</button>
+    <button id="btnImport" class="write-only">Restaurer</button>
     <input type="file" id="fileImport" accept="application/json" hidden>
   </div>
 </header>
@@ -138,7 +151,7 @@
   </section>
 
   <!-- Nouveau mouvement -->
-  <section class="card" id="form">
+  <section class="card write-only" id="form">
     <h2 id="formTitle">Nouveau mouvement</h2>
     <form id="movForm">
       <div class="row">
@@ -247,6 +260,65 @@ function save() {
   catch (e) { notify('Attention : ce navigateur ne permet pas d’enregistrer les données. Ouvrez le fichier directement dans Chrome, Firefox ou Safari, ou utilisez « Sauvegarde » avant de fermer la page.'); }
 }
 
+// ---------- Stockage : partagé en ligne (artifact claude.ai) ou local ----------
+// En ligne, chaque mouvement est un document « movements/<id> » et les soldes
+// initiaux sont dans « settings/initial ». Sinon, tout reste dans localStorage.
+let db = null;
+const FIELDS = ['date', 'type', 'acc', 'amount', 'cat', 'desc', 'to'];
+const clean = m => Object.fromEntries(FIELDS.filter(k => m[k] !== undefined && m[k] !== '').map(k => [k, m[k]]));
+
+function dbError(e) {
+  if (e && e.code === 'quota_exceeded') notify('La base de données est pleine (5000 mouvements maximum). Supprimez d’anciens mouvements après avoir fait une sauvegarde.');
+  else if (e && e.code === 'invalid_argument') notify('Vous n’avez pas le droit de modifier ces données (accès en lecture seule).');
+  else notify('Enregistrement impossible pour le moment. Réessayez dans quelques secondes.');
+  throw e;
+}
+async function storeMovement(m) {
+  if (db) return db.doc('movements/' + m.id).set(clean(m)).catch(dbError);
+  const i = state.movements.findIndex(x => x.id === m.id);
+  if (i >= 0) state.movements[i] = m; else state.movements.push(m);
+  save(); render();
+}
+async function removeMovement(id) {
+  if (db) return db.doc('movements/' + id).delete().catch(dbError);
+  state.movements = state.movements.filter(m => m.id !== id);
+  save(); render();
+}
+async function storeInitial(initial) {
+  if (db) return db.doc('settings/initial').set(initial).catch(dbError);
+  state.initial = initial;
+  save(); render();
+}
+async function replaceAll(data) {
+  if (!db) { state = data; save(); render(); return; }
+  for (const m of state.movements) if (!data.movements.some(x => x.id === m.id)) await removeMovement(m.id);
+  for (const m of data.movements) await storeMovement(m);
+  await storeInitial(data.initial);
+}
+
+async function connectShared() {
+  if (!window.claude || !window.claude.use) return;
+  db = await window.claude.use('db');
+  if (!db) return;
+  state = { initial: {}, movements: [] };
+  $('mode').textContent = 'Données partagées en ligne · mises à jour en direct';
+  $('mode').classList.add('shared');
+  render();
+  db.collection('movements').onSnapshot(snap => {
+    state.movements = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    render();
+  }, () => notify('Connexion aux données partagées perdue. Rechargez la page.'));
+  db.doc('settings/initial').onSnapshot(snap => {
+    state.initial = snap.exists ? { ...snap.data() } : {};
+    render();
+  }, () => {});
+  const user = await window.claude.use('user');
+  if (user && user.can('data.write') === false) {
+    document.body.classList.add('readonly');
+    $('mode').textContent = 'Données partagées en ligne · lecture seule';
+  }
+}
+
 const chf = new Intl.NumberFormat('fr-CH', { style: 'currency', currency: 'CHF' });
 const fmt = n => chf.format(n);
 const fmtDate = d => d ? d.split('-').reverse().join('/') : '';
@@ -302,7 +374,7 @@ function render() {
         <div><span>Transferts envoyés</span>${fmt(s.tout)}</div>
         <div style="grid-column:1/-1"><span>Solde en début de période</span>${fmt(s.open)}</div>
       </div>
-      <div class="moves">${a.id === 'banca'
+      <div class="moves write-only">${a.id === 'banca'
         ? `<button class="small" data-from="banca" data-to="">Retirer vers une caisse</button>`
         : `<button class="small" data-from="${a.id}" data-to="banca">Déposer à la banque →</button>
            <button class="small" data-from="banca" data-to="${a.id}">← Retirer de la banque</button>`}</div>
@@ -382,7 +454,7 @@ function renderTable(movs) {
   const rows = movs
     .filter(m => !acc || m.acc === acc || m.to === acc)
     .filter(m => !type || m.type === type)
-    .filter(m => !q || `${m.cat} ${m.desc}`.toLowerCase().includes(q))
+    .filter(m => !q || `${m.cat || ''} ${m.desc || ''}`.toLowerCase().includes(q))
     .sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
   $('movBody').innerHTML = rows.length ? rows.map(m => `
     <tr>
@@ -393,8 +465,8 @@ function renderTable(movs) {
       <td class="num in">${m.type === 'in' ? fmt(m.amount) : ''}</td>
       <td class="num out">${m.type === 'out' ? fmt(m.amount) : ''}</td>
       <td class="num">${m.type === 'transfer' ? `<span class="muted">${fmt(m.amount)}</span> ` : ''}
-        <button class="small" data-edit="${m.id}">Modifier</button>
-        <button class="small danger" data-del="${m.id}">Supprimer</button></td>
+        <button class="small write-only" data-edit="${m.id}">Modifier</button>
+        <button class="small danger write-only" data-del="${m.id}">Supprimer</button></td>
     </tr>`).join('') : '<tr><td colspan="7" class="empty">Aucun mouvement.</td></tr>';
 }
 
@@ -441,9 +513,7 @@ function submitMov() {
     desc: $('mDesc').value.trim(),
   };
   if (m.type === 'transfer') m.to = $('mTo').value;
-  if (editingId) state.movements = state.movements.map(x => x.id === editingId ? m : x);
-  else state.movements.push(m);
-  save(); resetForm(); render();
+  storeMovement(m).then(() => { resetForm(); render(); }, () => {});
 }
 $('mSubmit').onclick = submitMov;
 $('movForm').onsubmit = e => { e.preventDefault(); submitMov(); };
@@ -474,8 +544,7 @@ $('movBody').onclick = e => {
   const ed = e.target.dataset.edit, del = e.target.dataset.del;
   if (del) {
     if (e.target.dataset.armed) {
-      state.movements = state.movements.filter(m => m.id !== del);
-      save(); render();
+      removeMovement(del).catch(() => {});
     } else {
       e.target.dataset.armed = '1';
       e.target.textContent = 'Confirmer ?';
@@ -508,13 +577,19 @@ $('btnSaldi').onclick = () => {
 };
 $('saldiCancel').onclick = () => $('dlgSaldi').close();
 $('saldiOk').onclick = () => {
-  for (const a of ACCOUNTS) state.initial[a.id] = parseAmount($('saldo-' + a.id).value) || 0;
+  const initial = Object.fromEntries(ACCOUNTS.map(a => [a.id, parseAmount($('saldo-' + a.id).value) || 0]));
   $('dlgSaldi').close();
-  save(); render();
+  storeInitial(initial).catch(() => {});
 };
 
 // ---------- Import / export ----------
-function download(name, content, type) {
+async function download(name, content, type) {
+  const downloads = window.claude && window.claude.use ? await window.claude.use('downloads') : null;
+  if (downloads) {
+    try { await downloads.save({ filename: name, data: content }); }
+    catch (e) { if (e && e.code !== 'declined') notify('Téléchargement impossible ici.'); }
+    return;
+  }
   const url = URL.createObjectURL(new Blob([content], { type }));
   const a = Object.assign(document.createElement('a'), { href: url, download: name });
   a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
@@ -526,10 +601,11 @@ $('fileImport').onchange = async e => {
   try {
     const data = JSON.parse(await f.text());
     if (!Array.isArray(data.movements)) throw new Error();
-    state = { initial: data.initial || {}, movements: data.movements };
-    save(); render();
-    notify(`${data.movements.length} mouvements restaurés.`, true);
-  } catch { notify('Fichier non valide.'); }
+    const valid = data.movements.filter(m => m && /^[A-Za-z0-9_.~:@+-]{1,100}$/.test(m.id) && m.date && ACC[m.acc] && m.amount > 0);
+    notify(`Restauration de ${valid.length} mouvements…`, true);
+    await replaceAll({ initial: data.initial || {}, movements: valid });
+    notify(`${valid.length} mouvements restaurés.`, true);
+  } catch (err) { if (!db || !err || !err.code) notify('Fichier non valide.'); }
   e.target.value = '';
 };
 $('btnCsv').onclick = () => {
@@ -544,6 +620,7 @@ $('btnCsv').onclick = () => {
 resetForm();
 applyQuick();
 render();
+connectShared();
 </script>
 </body>
 </html>
