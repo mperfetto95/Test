@@ -55,6 +55,8 @@
   .acc .name { display: flex; align-items: center; gap: 8px; font-weight: 650; }
   .acc .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--c); }
   .acc .bal { font-size: 26px; font-weight: 700; margin: 8px 0 10px; font-variant-numeric: tabular-nums; }
+  .acc .moves { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .acc .moves button { flex: 1 1 auto; }
   .acc .flows { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 13px; font-variant-numeric: tabular-nums; }
   .acc .flows div span { display: block; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
   .in { color: var(--in); } .out { color: var(--out); }
@@ -145,7 +147,7 @@
           <select id="mType">
             <option value="in">Recette</option>
             <option value="out">Dépense</option>
-            <option value="transfer">Virement interne</option>
+            <option value="transfer">Transfert (caisse ↔ banque)</option>
           </select>
         </label>
         <label><span id="mAccLabel">Caisse / Compte</span> <select id="mAcc"></select></label>
@@ -188,7 +190,7 @@
           <option value="">Tous les types</option>
           <option value="in">Recettes</option>
           <option value="out">Dépenses</option>
-          <option value="transfer">Virements internes</option>
+          <option value="transfer">Transferts</option>
         </select>
         <input id="tSearch" placeholder="Rechercher…">
       </div>
@@ -296,10 +298,15 @@ function render() {
       <div class="flows">
         <div><span>Recettes</span><b class="in">${fmt(s.in)}</b></div>
         <div><span>Dépenses</span><b class="out">${fmt(s.out)}</b></div>
-        <div><span>Virements reçus</span>${fmt(s.tin)}</div>
-        <div><span>Virements envoyés</span>${fmt(s.tout)}</div>
+        <div><span>Transferts reçus</span>${fmt(s.tin)}</div>
+        <div><span>Transferts envoyés</span>${fmt(s.tout)}</div>
         <div style="grid-column:1/-1"><span>Solde en début de période</span>${fmt(s.open)}</div>
-      </div></div>`;
+      </div>
+      <div class="moves">${a.id === 'banca'
+        ? `<button class="small" data-from="banca" data-to="">Retirer vers une caisse</button>`
+        : `<button class="small" data-from="${a.id}" data-to="banca">Déposer à la banque →</button>
+           <button class="small" data-from="banca" data-to="${a.id}">← Retirer de la banque</button>`}</div>
+    </div>`;
   }).join('');
 
   const tot = Object.values(stats).reduce((t, s) => ({ open: t.open + s.open, in: t.in + s.in, out: t.out + s.out }), { open: 0, in: 0, out: 0 });
@@ -381,7 +388,7 @@ function renderTable(movs) {
     <tr>
       <td>${fmtDate(m.date)}</td>
       <td>${m.type === 'transfer' ? `${accTag(m.acc)} → ${accTag(m.to)}` : accTag(m.acc)}</td>
-      <td>${esc(m.cat) || (m.type === 'transfer' ? '<span class="muted">Virement interne</span>' : '')}</td>
+      <td>${esc(m.cat) || (m.type === 'transfer' ? `<span class="muted">${transferLabel(m)}</span>` : '')}</td>
       <td>${esc(m.desc)}</td>
       <td class="num in">${m.type === 'in' ? fmt(m.amount) : ''}</td>
       <td class="num out">${m.type === 'out' ? fmt(m.amount) : ''}</td>
@@ -441,6 +448,27 @@ function submitMov() {
 $('mSubmit').onclick = submitMov;
 $('movForm').onsubmit = e => { e.preventDefault(); submitMov(); };
 $('mCancel').onclick = resetForm;
+
+function transferLabel(m) {
+  if (m.to === 'banca') return 'Dépôt à la banque';
+  if (m.acc === 'banca') return 'Retrait de la banque';
+  return 'Transfert entre caisses';
+}
+
+// Boutons rapides sur les cartes : caisse → banque / banque → caisse
+$('accounts').onclick = e => {
+  const from = e.target.dataset.from;
+  if (!from) return;
+  resetForm();
+  $('mType').value = 'transfer';
+  $('mAcc').value = from;
+  syncType();
+  if (e.target.dataset.to) $('mTo').value = e.target.dataset.to;
+  $('formTitle').textContent = from === 'banca' ? 'Retrait de la banque' : 'Dépôt à la banque';
+  $('mCancel').hidden = false;
+  $('form').scrollIntoView({ behavior: 'smooth' });
+  $('mAmount').focus({ preventScroll: true });
+};
 
 $('movBody').onclick = e => {
   const ed = e.target.dataset.edit, del = e.target.dataset.del;
@@ -506,7 +534,7 @@ $('fileImport').onchange = async e => {
 };
 $('btnCsv').onclick = () => {
   const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
-  const tipo = { in: 'Recette', out: 'Dépense', transfer: 'Virement interne' };
+  const tipo = { in: 'Recette', out: 'Dépense', transfer: 'Transfert' };
   const lines = [['Date', 'Type', 'Caisse', 'Vers', 'Montant (CHF)', 'Catégorie', 'Description'].join(';')];
   for (const m of [...state.movements].filter(m => inPeriod(m.date)).sort((a, b) => a.date.localeCompare(b.date)))
     lines.push([m.date, tipo[m.type], ACC[m.acc]?.name, m.to ? ACC[m.to]?.name : '', m.amount.toFixed(2), m.cat, m.desc].map(q).join(';'));
