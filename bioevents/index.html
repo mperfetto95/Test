@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bioevents · Casse</title>
+<style>
+  :root {
+    --bg: #f4f6f3;
+    --card: #ffffff;
+    --text: #1d2521;
+    --muted: #66736b;
+    --border: #dde3de;
+    --accent: #2f7d4f;
+    --in: #1f8a4c;
+    --out: #c0392b;
+    --nera: #2b2b2b;
+    --grigia: #8a9199;
+    --verde: #3aa564;
+    --banca: #2c6db5;
+    --shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 14px rgba(0,0,0,.04);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #121614; --card: #1b211e; --text: #e6ece8; --muted: #93a098;
+      --border: #2c3530; --accent: #52b77b; --in: #4cc47f; --out: #ef6b5d;
+      --nera: #d9d9d9; --grigia: #9aa3ab; --verde: #52c07c; --banca: #5b9be0;
+      --shadow: none;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  [hidden] { display: none !important; }
+  body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.4; }
+  header { padding: 20px 24px; border-bottom: 1px solid var(--border); background: var(--card); display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
+  header h1 { font-size: 20px; font-weight: 650; }
+  header h1 span { color: var(--accent); }
+  header .sub { color: var(--muted); font-size: 13px; }
+  main { max-width: 1200px; margin: 0 auto; padding: 20px 16px 60px; display: grid; gap: 20px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px; box-shadow: var(--shadow); }
+  h2 { font-size: 15px; font-weight: 650; margin-bottom: 12px; }
+  .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
+  label { display: grid; gap: 4px; font-size: 12px; color: var(--muted); }
+  input, select, button { font: inherit; font-size: 14px; }
+  input, select { padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); min-width: 0; }
+  button { padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); color: var(--text); cursor: pointer; }
+  button:hover { border-color: var(--accent); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  button.small { padding: 4px 8px; font-size: 12px; }
+  button.danger:hover { border-color: var(--out); color: var(--out); }
+
+  .filters { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
+
+  .accounts { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+  .acc { border-top: 4px solid var(--c); }
+  .acc .name { display: flex; align-items: center; gap: 8px; font-weight: 650; }
+  .acc .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--c); }
+  .acc .bal { font-size: 26px; font-weight: 700; margin: 8px 0 10px; font-variant-numeric: tabular-nums; }
+  .acc .flows { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 13px; font-variant-numeric: tabular-nums; }
+  .acc .flows div span { display: block; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+  .in { color: var(--in); } .out { color: var(--out); }
+  .neg { color: var(--out); }
+
+  .total { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; }
+  .kpi span { display: block; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+  .kpi b { font-size: 22px; font-variant-numeric: tabular-nums; }
+
+  .chart-wrap { overflow-x: auto; }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 800px) { .grid2 { grid-template-columns: 1fr; } }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { padding: 8px 6px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .table-wrap { overflow-x: auto; }
+  .tag { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+  .tag .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
+  .empty { color: var(--muted); padding: 18px 0; text-align: center; }
+  .bar { height: 8px; border-radius: 4px; background: var(--c); }
+
+  #form .row > label { flex: 1 1 140px; }
+  #form .row > label.wide { flex: 3 1 240px; }
+  .muted { color: var(--muted); font-size: 12px; }
+  dialog { border: 1px solid var(--border); border-radius: 12px; padding: 20px; background: var(--card); color: var(--text); max-width: 420px; width: calc(100% - 32px); }
+  dialog::backdrop { background: rgba(0,0,0,.4); }
+  dialog .row > label { flex: 1 1 100%; }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Associazione <span>Bioevents</span></h1>
+    <div class="sub">Panoramica entrate e uscite · Cassa Nera, Grigia, Verde e Conto in banca</div>
+  </div>
+  <div class="row">
+    <button id="btnSaldi">Saldi iniziali</button>
+    <button id="btnCsv">Esporta CSV</button>
+    <button id="btnExport">Backup</button>
+    <button id="btnImport">Ripristina</button>
+    <input type="file" id="fileImport" accept="application/json" hidden>
+  </div>
+</header>
+
+<main>
+  <!-- Filtri periodo -->
+  <section class="card">
+    <div class="filters">
+      <label>Dal <input type="date" id="fFrom"></label>
+      <label>Al <input type="date" id="fTo"></label>
+      <label>Periodo rapido
+        <select id="fQuick">
+          <option value="">Personalizzato</option>
+          <option value="all" selected>Tutto</option>
+          <option value="month">Mese corrente</option>
+          <option value="year">Anno corrente</option>
+          <option value="lastyear">Anno scorso</option>
+        </select>
+      </label>
+      <span class="muted" id="periodLabel"></span>
+    </div>
+  </section>
+
+  <!-- Casse -->
+  <section class="accounts" id="accounts"></section>
+
+  <!-- Totali -->
+  <section class="card">
+    <h2>Totale associazione</h2>
+    <div class="total" id="totals"></div>
+  </section>
+
+  <!-- Nuovo movimento -->
+  <section class="card" id="form">
+    <h2 id="formTitle">Nuovo movimento</h2>
+    <form id="movForm">
+      <div class="row">
+        <label>Data <input type="date" id="mDate" required></label>
+        <label>Tipo
+          <select id="mType">
+            <option value="in">Entrata</option>
+            <option value="out">Uscita</option>
+            <option value="transfer">Giroconto</option>
+          </select>
+        </label>
+        <label><span id="mAccLabel">Cassa / Conto</span> <select id="mAcc"></select></label>
+        <label id="mToWrap" hidden>Verso <select id="mTo"></select></label>
+        <label>Importo (€) <input type="number" id="mAmount" step="0.01" min="0.01" required></label>
+        <label>Categoria <input id="mCat" list="catList" placeholder="es. Quote soci"></label>
+        <label class="wide">Descrizione <input id="mDesc" placeholder="Dettagli (facoltativo)"></label>
+        <button class="primary" type="submit" id="mSubmit">Aggiungi</button>
+        <button type="button" id="mCancel" hidden>Annulla</button>
+      </div>
+      <datalist id="catList"></datalist>
+    </form>
+  </section>
+
+  <!-- Grafico mensile -->
+  <section class="card">
+    <h2>Andamento mensile (entrate vs uscite)</h2>
+    <div class="legend">
+      <span><i style="background:var(--in)"></i>Entrate</span>
+      <span><i style="background:var(--out)"></i>Uscite</span>
+      <span>Il numero sopra le barre è il risultato netto del mese</span>
+    </div>
+    <div class="chart-wrap" id="chart"></div>
+  </section>
+
+  <!-- Categorie -->
+  <section class="grid2">
+    <div class="card"><h2>Entrate per categoria</h2><div id="catIn"></div></div>
+    <div class="card"><h2>Uscite per categoria</h2><div id="catOut"></div></div>
+  </section>
+
+  <!-- Movimenti -->
+  <section class="card">
+    <div class="row" style="justify-content:space-between;margin-bottom:10px">
+      <h2 style="margin:0">Movimenti</h2>
+      <div class="row">
+        <select id="tAcc"><option value="">Tutte le casse</option></select>
+        <select id="tType">
+          <option value="">Tutti i tipi</option>
+          <option value="in">Entrate</option>
+          <option value="out">Uscite</option>
+          <option value="transfer">Giroconti</option>
+        </select>
+        <input id="tSearch" placeholder="Cerca…">
+      </div>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Data</th><th>Cassa</th><th>Categoria</th><th>Descrizione</th><th class="num">Entrata</th><th class="num">Uscita</th><th></th></tr></thead>
+      <tbody id="movBody"></tbody>
+    </table></div>
+  </section>
+</main>
+
+<dialog id="dlgSaldi">
+  <h2>Saldi iniziali</h2>
+  <p class="muted" style="margin-bottom:12px">Il saldo presente in ogni cassa prima del primo movimento registrato.</p>
+  <form method="dialog" id="saldiForm"><div class="row" id="saldiFields"></div>
+    <div class="row" style="margin-top:14px;justify-content:flex-end">
+      <button value="cancel">Annulla</button>
+      <button class="primary" value="ok">Salva</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+const ACCOUNTS = [
+  { id: 'nera',   name: 'Cassa Nera',   color: 'var(--nera)' },
+  { id: 'grigia', name: 'Cassa Grigia', color: 'var(--grigia)' },
+  { id: 'verde',  name: 'Cassa Verde',  color: 'var(--verde)' },
+  { id: 'banca',  name: 'Conto Banca',  color: 'var(--banca)' },
+];
+const ACC = Object.fromEntries(ACCOUNTS.map(a => [a.id, a]));
+const STORE_KEY = 'bioevents-casse-v1';
+
+let state = load();
+let editingId = null;
+
+function load() {
+  try {
+    const s = JSON.parse(localStorage.getItem(STORE_KEY));
+    if (s && Array.isArray(s.movements)) return { initial: s.initial || {}, movements: s.movements };
+  } catch (e) {}
+  return { initial: {}, movements: [] };
+}
+function save() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) { alert('Impossibile salvare i dati nel browser.'); }
+}
+
+const eur = new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' });
+const fmt = n => eur.format(n);
+const fmtDate = d => d ? d.split('-').reverse().join('/') : '';
+const today = () => new Date().toISOString().slice(0, 10);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+
+// ---------- Periodo ----------
+const $ = id => document.getElementById(id);
+function applyQuick() {
+  const q = $('fQuick').value, y = new Date().getFullYear(), m = String(new Date().getMonth() + 1).padStart(2, '0');
+  if (q === 'all') { $('fFrom').value = ''; $('fTo').value = ''; }
+  if (q === 'month') { $('fFrom').value = `${y}-${m}-01`; $('fTo').value = today(); }
+  if (q === 'year') { $('fFrom').value = `${y}-01-01`; $('fTo').value = `${y}-12-31`; }
+  if (q === 'lastyear') { $('fFrom').value = `${y-1}-01-01`; $('fTo').value = `${y-1}-12-31`; }
+}
+const inPeriod = d => (!$('fFrom').value || d >= $('fFrom').value) && (!$('fTo').value || d <= $('fTo').value);
+
+// Effetto di un movimento su ciascuna cassa: [{acc, amount(+/-)}]
+function effects(m) {
+  if (m.type === 'in') return [{ acc: m.acc, v: m.amount }];
+  if (m.type === 'out') return [{ acc: m.acc, v: -m.amount }];
+  return [{ acc: m.acc, v: -m.amount }, { acc: m.to, v: m.amount }];
+}
+
+// ---------- Render ----------
+function render() {
+  const from = $('fFrom').value, to = $('fTo').value;
+  $('periodLabel').textContent = !from && !to ? 'Tutto lo storico' : `${from ? fmtDate(from) : 'inizio'} → ${to ? fmtDate(to) : 'oggi'}`;
+
+  const stats = Object.fromEntries(ACCOUNTS.map(a => [a.id, { open: +state.initial[a.id] || 0, in: 0, out: 0, tin: 0, tout: 0 }]));
+  for (const m of state.movements) {
+    const before = from && m.date < from, within = inPeriod(m.date), after = to && m.date > to;
+    for (const e of effects(m)) {
+      const s = stats[e.acc]; if (!s) continue;
+      if (before) s.open += e.v;
+      else if (within) {
+        if (m.type === 'transfer') e.v > 0 ? s.tin += e.v : s.tout -= e.v;
+        else e.v > 0 ? s.in += e.v : s.out -= e.v;
+      }
+    }
+  }
+
+  $('accounts').innerHTML = ACCOUNTS.map(a => {
+    const s = stats[a.id], bal = s.open + s.in - s.out + s.tin - s.tout;
+    return `<div class="card acc" style="--c:${a.color}">
+      <div class="name"><span class="dot"></span>${a.name}</div>
+      <div class="bal ${bal < 0 ? 'neg' : ''}">${fmt(bal)}</div>
+      <div class="flows">
+        <div><span>Entrate</span><b class="in">${fmt(s.in)}</b></div>
+        <div><span>Uscite</span><b class="out">${fmt(s.out)}</b></div>
+        <div><span>Giroconti in</span>${fmt(s.tin)}</div>
+        <div><span>Giroconti out</span>${fmt(s.tout)}</div>
+        <div style="grid-column:1/-1"><span>Saldo a inizio periodo</span>${fmt(s.open)}</div>
+      </div></div>`;
+  }).join('');
+
+  const tot = Object.values(stats).reduce((t, s) => ({ open: t.open + s.open, in: t.in + s.in, out: t.out + s.out }), { open: 0, in: 0, out: 0 });
+  const net = tot.in - tot.out;
+  $('totals').innerHTML = `
+    <div class="kpi"><span>Saldo complessivo</span><b class="${tot.open + net < 0 ? 'neg' : ''}">${fmt(tot.open + net)}</b></div>
+    <div class="kpi"><span>Entrate</span><b class="in">${fmt(tot.in)}</b></div>
+    <div class="kpi"><span>Uscite</span><b class="out">${fmt(tot.out)}</b></div>
+    <div class="kpi"><span>Risultato del periodo</span><b class="${net < 0 ? 'out' : 'in'}">${net >= 0 ? '+' : ''}${fmt(net)}</b></div>
+    <div class="kpi"><span>Saldo a inizio periodo</span><b>${fmt(tot.open)}</b></div>`;
+
+  const periodMovs = state.movements.filter(m => inPeriod(m.date));
+  renderChart(periodMovs);
+  renderCats(periodMovs);
+  renderTable(periodMovs);
+
+  const cats = [...new Set(state.movements.map(m => m.cat).filter(Boolean))].sort();
+  $('catList').innerHTML = cats.map(c => `<option value="${esc(c)}">`).join('');
+}
+
+function renderChart(movs) {
+  const months = {};
+  for (const m of movs) {
+    if (m.type === 'transfer') continue;
+    const k = m.date.slice(0, 7);
+    months[k] ??= { in: 0, out: 0 };
+    months[k][m.type] += m.amount;
+  }
+  const keys = Object.keys(months).sort();
+  if (!keys.length) { $('chart').innerHTML = '<div class="empty">Nessun movimento nel periodo.</div>'; return; }
+
+  const max = Math.max(...keys.flatMap(k => [months[k].in, months[k].out]), 1);
+  const H = 220, pad = 30, bw = 16, gap = 18, gw = bw * 2 + gap;
+  const W = Math.max(600, pad * 2 + keys.length * gw);
+  const y = v => H - pad - (v / max) * (H - pad * 2);
+  const mesi = ['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
+  let svg = `<svg width="${W}" height="${H + 10}" style="display:block;font-size:11px">`;
+  for (let i = 0; i <= 4; i++) {
+    const v = max * i / 4, yy = y(v);
+    svg += `<line x1="${pad}" x2="${W - 10}" y1="${yy}" y2="${yy}" stroke="var(--border)"/>`;
+    svg += `<text x="${pad - 4}" y="${yy + 4}" text-anchor="end" fill="var(--muted)">${v >= 1000 ? Math.round(v / 1000) + 'k' : Math.round(v)}</text>`;
+  }
+  keys.forEach((k, i) => {
+    const x = pad + 10 + i * gw, d = months[k];
+    svg += `<rect x="${x}" y="${y(d.in)}" width="${bw}" height="${H - pad - y(d.in)}" rx="2" fill="var(--in)"><title>${k} entrate ${fmt(d.in)}</title></rect>`;
+    svg += `<rect x="${x + bw + 2}" y="${y(d.out)}" width="${bw}" height="${H - pad - y(d.out)}" rx="2" fill="var(--out)"><title>${k} uscite ${fmt(d.out)}</title></rect>`;
+    const [yy, mm] = k.split('-');
+    svg += `<text x="${x + bw}" y="${H - pad + 14}" text-anchor="middle" fill="var(--muted)">${mesi[+mm - 1]} ${yy.slice(2)}</text>`;
+    const net = d.in - d.out;
+    svg += `<text x="${x + bw}" y="${y(Math.max(d.in, d.out)) - 5}" text-anchor="middle" fill="${net < 0 ? 'var(--out)' : 'var(--in)'}" font-weight="600">${net >= 0 ? '+' : ''}${Math.round(net)}</text>`;
+  });
+  svg += '</svg>';
+  $('chart').innerHTML = svg;
+}
+
+function renderCats(movs) {
+  for (const type of ['in', 'out']) {
+    const by = {};
+    for (const m of movs) if (m.type === type) by[m.cat || 'Senza categoria'] = (by[m.cat || 'Senza categoria'] || 0) + m.amount;
+    const rows = Object.entries(by).sort((a, b) => b[1] - a[1]);
+    const max = rows[0]?.[1] || 1, color = type === 'in' ? 'var(--in)' : 'var(--out)';
+    $(type === 'in' ? 'catIn' : 'catOut').innerHTML = rows.length ? `<table>${rows.map(([c, v]) => `
+      <tr><td style="width:40%">${esc(c)}</td>
+      <td><div class="bar" style="--c:${color};width:${Math.max(2, v / max * 100)}%"></div></td>
+      <td class="num">${fmt(v)}</td></tr>`).join('')}</table>` : '<div class="empty">Nessun dato.</div>';
+  }
+}
+
+function accTag(id) { const a = ACC[id]; return a ? `<span class="tag" style="--c:${a.color}"><span class="dot"></span>${a.name}</span>` : esc(id); }
+
+function renderTable(movs) {
+  const acc = $('tAcc').value, type = $('tType').value, q = $('tSearch').value.trim().toLowerCase();
+  const rows = movs
+    .filter(m => !acc || m.acc === acc || m.to === acc)
+    .filter(m => !type || m.type === type)
+    .filter(m => !q || `${m.cat} ${m.desc}`.toLowerCase().includes(q))
+    .sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
+  $('movBody').innerHTML = rows.length ? rows.map(m => `
+    <tr>
+      <td>${fmtDate(m.date)}</td>
+      <td>${m.type === 'transfer' ? `${accTag(m.acc)} → ${accTag(m.to)}` : accTag(m.acc)}</td>
+      <td>${esc(m.cat) || (m.type === 'transfer' ? '<span class="muted">Giroconto</span>' : '')}</td>
+      <td>${esc(m.desc)}</td>
+      <td class="num in">${m.type === 'in' ? fmt(m.amount) : ''}</td>
+      <td class="num out">${m.type === 'out' ? fmt(m.amount) : ''}</td>
+      <td class="num">${m.type === 'transfer' ? `<span class="muted">${fmt(m.amount)}</span> ` : ''}
+        <button class="small" data-edit="${m.id}">Modifica</button>
+        <button class="small danger" data-del="${m.id}">Elimina</button></td>
+    </tr>`).join('') : '<tr><td colspan="7" class="empty">Nessun movimento.</td></tr>';
+}
+
+// ---------- Form movimento ----------
+const opts = (exclude) => ACCOUNTS.filter(a => a.id !== exclude).map(a => `<option value="${a.id}">${a.name}</option>`).join('');
+$('mAcc').innerHTML = opts();
+$('tAcc').innerHTML += opts();
+function syncType() {
+  const t = $('mType').value;
+  $('mToWrap').hidden = t !== 'transfer';
+  $('mAccLabel').textContent = t === 'transfer' ? 'Da' : 'Cassa / Conto';
+  const cur = $('mTo').value;
+  $('mTo').innerHTML = opts($('mAcc').value);
+  if (cur && cur !== $('mAcc').value) $('mTo').value = cur;
+}
+$('mType').onchange = syncType;
+$('mAcc').onchange = syncType;
+
+function resetForm() {
+  editingId = null;
+  $('movForm').reset();
+  $('mDate').value = today();
+  $('formTitle').textContent = 'Nuovo movimento';
+  $('mSubmit').textContent = 'Aggiungi';
+  $('mCancel').hidden = true;
+  syncType();
+}
+
+$('movForm').onsubmit = e => {
+  e.preventDefault();
+  const amount = Math.round(parseFloat($('mAmount').value) * 100) / 100;
+  if (!(amount > 0)) return;
+  const m = {
+    id: editingId || uid(),
+    date: $('mDate').value,
+    type: $('mType').value,
+    acc: $('mAcc').value,
+    amount,
+    cat: $('mCat').value.trim(),
+    desc: $('mDesc').value.trim(),
+  };
+  if (m.type === 'transfer') m.to = $('mTo').value;
+  if (editingId) state.movements = state.movements.map(x => x.id === editingId ? m : x);
+  else state.movements.push(m);
+  save(); resetForm(); render();
+};
+$('mCancel').onclick = resetForm;
+
+$('movBody').onclick = e => {
+  const ed = e.target.dataset.edit, del = e.target.dataset.del;
+  if (del && confirm('Eliminare questo movimento?')) {
+    state.movements = state.movements.filter(m => m.id !== del);
+    save(); render();
+  }
+  if (ed) {
+    const m = state.movements.find(x => x.id === ed); if (!m) return;
+    editingId = m.id;
+    $('mDate').value = m.date; $('mType').value = m.type; $('mAcc').value = m.acc;
+    syncType(); if (m.to) $('mTo').value = m.to;
+    $('mAmount').value = m.amount; $('mCat').value = m.cat || ''; $('mDesc').value = m.desc || '';
+    $('formTitle').textContent = 'Modifica movimento';
+    $('mSubmit').textContent = 'Salva modifiche';
+    $('mCancel').hidden = false;
+    $('form').scrollIntoView({ behavior: 'smooth' });
+  }
+};
+
+// ---------- Filtri ----------
+$('fQuick').onchange = () => { applyQuick(); render(); };
+$('fFrom').onchange = $('fTo').onchange = () => { $('fQuick').value = ''; render(); };
+$('tAcc').onchange = $('tType').onchange = $('tSearch').oninput = render;
+
+// ---------- Saldi iniziali ----------
+$('btnSaldi').onclick = () => {
+  $('saldiFields').innerHTML = ACCOUNTS.map(a => `<label>${a.name}
+    <input type="number" step="0.01" name="${a.id}" value="${+state.initial[a.id] || 0}"></label>`).join('');
+  $('dlgSaldi').showModal();
+};
+$('dlgSaldi').onclose = () => {
+  if ($('dlgSaldi').returnValue !== 'ok') return;
+  for (const a of ACCOUNTS) state.initial[a.id] = parseFloat($('saldiForm').elements[a.id].value) || 0;
+  save(); render();
+};
+
+// ---------- Import / export ----------
+function download(name, content, type) {
+  const url = URL.createObjectURL(new Blob([content], { type }));
+  const a = Object.assign(document.createElement('a'), { href: url, download: name });
+  a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+$('btnExport').onclick = () => download(`bioevents-casse-${today()}.json`, JSON.stringify(state, null, 2), 'application/json');
+$('btnImport').onclick = () => $('fileImport').click();
+$('fileImport').onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try {
+    const data = JSON.parse(await f.text());
+    if (!Array.isArray(data.movements)) throw new Error();
+    if (!confirm(`Ripristinare ${data.movements.length} movimenti? I dati attuali verranno sostituiti.`)) return;
+    state = { initial: data.initial || {}, movements: data.movements };
+    save(); render();
+  } catch { alert('File non valido.'); }
+  e.target.value = '';
+};
+$('btnCsv').onclick = () => {
+  const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+  const tipo = { in: 'Entrata', out: 'Uscita', transfer: 'Giroconto' };
+  const lines = [['Data', 'Tipo', 'Cassa', 'Verso', 'Importo', 'Categoria', 'Descrizione'].join(';')];
+  for (const m of [...state.movements].filter(m => inPeriod(m.date)).sort((a, b) => a.date.localeCompare(b.date)))
+    lines.push([m.date, tipo[m.type], ACC[m.acc]?.name, m.to ? ACC[m.to]?.name : '', String(m.amount).replace('.', ','), m.cat, m.desc].map(q).join(';'));
+  download(`bioevents-movimenti-${today()}.csv`, '﻿' + lines.join('\n'), 'text/csv');
+};
+
+resetForm();
+applyQuick();
+render();
+</script>
+</body>
+</html>
