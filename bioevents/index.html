@@ -100,6 +100,19 @@
   .muted { color: var(--muted); font-size: 12px; }
   .msg { font-size: 13px; padding: 8px 12px; border-radius: 8px; background: color-mix(in srgb, var(--out) 12%, transparent); color: var(--out); }
   .msg.ok { background: color-mix(in srgb, var(--in) 12%, transparent); color: var(--in); }
+  .receipts { display: grid; gap: 8px; margin-top: 12px; }
+  .receipts .lbl { font-size: 12px; color: var(--muted); }
+  .thumbs { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .thumb { position: relative; width: 72px; height: 72px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); overflow: hidden; display: grid; place-items: center; font-size: 12px; font-weight: 650; color: var(--muted); }
+  .thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .thumb button { position: absolute; top: 3px; right: 3px; width: 22px; height: 22px; padding: 0; border-radius: 50%; font-size: 14px; line-height: 1; background: var(--card); }
+  .chip { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--border); color: var(--muted); white-space: nowrap; }
+  .chip.warn { color: var(--out); border-color: color-mix(in srgb, var(--out) 40%, transparent); }
+  .rc-list { display: grid; gap: 12px; max-height: 70vh; overflow-y: auto; }
+  .rc-list img { width: 100%; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); }
+  .rc-list .pdf { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; }
+  label.check { display: inline-flex; flex-direction: row; align-items: center; gap: 6px; font-size: 13px; color: var(--text); }
+  #dlgRc { max-width: 640px; }
   dialog { border: 1px solid var(--border); border-radius: 12px; padding: 20px; background: var(--card); color: var(--text); max-width: 420px; width: calc(100% - 32px); }
   dialog::backdrop { background: rgba(0,0,0,.4); }
   dialog .row > label { flex: 1 1 100%; }
@@ -168,6 +181,17 @@
         <label>Montant (CHF) <input type="text" inputmode="decimal" id="mAmount" placeholder="0.00" autocomplete="off"></label>
         <label>Catégorie <input id="mCat" list="catList" placeholder="ex. Cotisations"></label>
         <label class="wide">Description <input id="mDesc" placeholder="Détails (facultatif)"></label>
+      </div>
+      <div class="receipts">
+        <span class="lbl">Justificatifs (photos de tickets, factures PDF)</span>
+        <div class="thumbs" id="rcThumbs">
+          <button type="button" id="rcAdd" hidden>+ Ajouter une photo ou un PDF</button>
+          <span class="muted" id="rcStatus"></span>
+          <span class="muted" id="rcOffline">Disponible dans la version en ligne de la page.</span>
+        </div>
+        <input type="file" id="rcInput" accept="image/*,application/pdf" multiple hidden>
+      </div>
+      <div class="row" style="margin-top:14px">
         <button class="primary" type="button" id="mSubmit">Ajouter</button>
         <button type="button" id="mCancel" hidden>Annuler</button>
       </div>
@@ -205,15 +229,24 @@
           <option value="out">Dépenses</option>
           <option value="transfer">Transferts</option>
         </select>
+        <label class="check"><input type="checkbox" id="tNoRc"> Sans justificatif</label>
         <input id="tSearch" placeholder="Rechercher…">
       </div>
     </div>
     <div class="table-wrap"><table>
-      <thead><tr><th>Date</th><th>Caisse</th><th>Catégorie</th><th>Description</th><th class="num">Recette</th><th class="num">Dépense</th><th></th></tr></thead>
+      <thead><tr><th>Date</th><th>Caisse</th><th>Catégorie</th><th>Description</th><th>Justificatif</th><th class="num">Recette</th><th class="num">Dépense</th><th></th></tr></thead>
       <tbody id="movBody"></tbody>
     </table></div>
   </section>
 </main>
+
+<dialog id="dlgRc">
+  <h2 id="rcTitle">Justificatifs</h2>
+  <div class="rc-list" id="rcList"></div>
+  <div class="row" style="margin-top:14px;justify-content:flex-end">
+    <button type="button" id="rcClose">Fermer</button>
+  </div>
+</dialog>
 
 <dialog id="dlgSaldi">
   <h2>Soldes initiaux</h2>
@@ -264,7 +297,7 @@ function save() {
 // En ligne, chaque mouvement est un document « movements/<id> » et les soldes
 // initiaux sont dans « settings/initial ». Sinon, tout reste dans localStorage.
 let db = null;
-const FIELDS = ['date', 'type', 'acc', 'amount', 'cat', 'desc', 'to'];
+const FIELDS = ['date', 'type', 'acc', 'amount', 'cat', 'desc', 'to', 'receipts'];
 const clean = m => Object.fromEntries(FIELDS.filter(k => m[k] !== undefined && m[k] !== '').map(k => [k, m[k]]));
 
 function dbError(e) {
@@ -300,6 +333,10 @@ async function connectShared() {
   if (!window.claude || !window.claude.use) return;
   db = await window.claude.use('db');
   if (!db) return;
+  assets = await window.claude.use('assets');
+  $('rcAdd').hidden = !assets;
+  $('rcOffline').hidden = !!assets;
+  if (!assets) $('rcOffline').textContent = 'Vous ne pouvez pas ajouter de justificatifs avec votre accès actuel.';
   state = { initial: {}, movements: [] };
   $('mode').textContent = 'Données partagées en ligne · mises à jour en direct';
   $('mode').classList.add('shared');
@@ -454,6 +491,7 @@ function renderTable(movs) {
   const rows = movs
     .filter(m => !acc || m.acc === acc || m.to === acc)
     .filter(m => !type || m.type === type)
+    .filter(m => !$('tNoRc').checked || (m.type !== 'transfer' && !(m.receipts && m.receipts.length)))
     .filter(m => !q || `${m.cat || ''} ${m.desc || ''}`.toLowerCase().includes(q))
     .sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
   $('movBody').innerHTML = rows.length ? rows.map(m => `
@@ -462,12 +500,13 @@ function renderTable(movs) {
       <td>${m.type === 'transfer' ? `${accTag(m.acc)} → ${accTag(m.to)}` : accTag(m.acc)}</td>
       <td>${esc(m.cat) || (m.type === 'transfer' ? `<span class="muted">${transferLabel(m)}</span>` : '')}</td>
       <td>${esc(m.desc)}</td>
+      <td>${rcCell(m)}</td>
       <td class="num in">${m.type === 'in' ? fmt(m.amount) : ''}</td>
       <td class="num out">${m.type === 'out' ? fmt(m.amount) : ''}</td>
       <td class="num">${m.type === 'transfer' ? `<span class="muted">${fmt(m.amount)}</span> ` : ''}
         <button class="small write-only" data-edit="${m.id}">Modifier</button>
         <button class="small danger write-only" data-del="${m.id}">Supprimer</button></td>
-    </tr>`).join('') : '<tr><td colspan="7" class="empty">Aucun mouvement.</td></tr>';
+    </tr>`).join('') : '<tr><td colspan="8" class="empty">Aucun mouvement.</td></tr>';
 }
 
 // ---------- Formulaire mouvement ----------
@@ -485,7 +524,10 @@ function syncType() {
 $('mType').onchange = syncType;
 $('mAcc').onchange = syncType;
 
-function resetForm() {
+function resetForm(discard = true) {
+  if (discard) for (const id of rcUploaded) deleteAsset(id);
+  rcUploaded = []; rcRemoved = []; formReceipts = [];
+  renderThumbs();
   editingId = null;
   $('movForm').reset();
   $('mDate').value = today();
@@ -495,6 +537,92 @@ function resetForm() {
   formError('');
   syncType();
 }
+
+// ---------- Justificatifs (photos / PDF, version en ligne) ----------
+// Les fichiers sont stockés comme « assets » de la page ; le mouvement garde
+// seulement leurs identifiants : receipts: [{ id, type }].
+let assets = null, formReceipts = [], rcUploaded = [], rcRemoved = [], rcBusy = 0;
+const blobUrl = id => '/_blob/' + encodeURIComponent(id);
+const isPdf = r => r.type === 'application/pdf';
+
+function deleteAsset(id) { if (assets) assets.delete(id).catch(() => {}); }
+
+function rcCell(m) {
+  const n = (m.receipts || []).length;
+  if (n) return `<button class="small" data-view="${m.id}">Voir (${n})</button>`;
+  return m.type === 'transfer' ? '' : `<span class="chip${m.type === 'out' ? ' warn' : ''}">Aucun</span>`;
+}
+
+function renderThumbs() {
+  const box = $('rcThumbs');
+  box.querySelectorAll('.thumb').forEach(t => t.remove());
+  for (const r of formReceipts) {
+    const t = document.createElement('div');
+    t.className = 'thumb';
+    t.innerHTML = (isPdf(r) ? 'PDF' : `<img src="${blobUrl(r.id)}" alt="Justificatif">`) +
+      `<button type="button" data-rm="${esc(r.id)}" aria-label="Retirer ce justificatif">×</button>`;
+    box.insertBefore(t, $('rcAdd'));
+  }
+}
+
+// Réduit les photos de téléphone (souvent 4-8 Mo) à 1600 px en JPEG.
+async function shrink(file) {
+  if (!/^image\/(jpeg|png|webp|heic|heif)$/.test(file.type)) return file;
+  try {
+    const img = await createImageBitmap(file);
+    const k = Math.min(1, 1600 / Math.max(img.width, img.height));
+    const c = document.createElement('canvas');
+    c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+    const out = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.82));
+    return out && out.size < file.size ? out : file;
+  } catch (e) { return file; }
+}
+
+function rcErrorText(e) {
+  const code = e && e.code;
+  if (code === 'too_large') return 'Fichier trop lourd (20 Mo maximum).';
+  if (code === 'unsupported_type') return 'Format non accepté : utilisez une photo (JPEG, PNG) ou un PDF.';
+  if (code === 'quota_or_state') return 'L’espace pour les justificatifs est plein.';
+  if (code === 'rate_limited') return 'Trop d’envois d’un coup. Réessayez dans un instant.';
+  return 'Envoi du justificatif impossible. Réessayez.';
+}
+
+$('rcAdd').onclick = () => $('rcInput').click();
+$('rcInput').onchange = async e => {
+  const files = [...e.target.files]; e.target.value = '';
+  for (const f of files) {
+    rcBusy++;
+    $('rcStatus').textContent = `Envoi de ${f.name}…`;
+    try {
+      const blob = await shrink(f);
+      const r = await assets.upload(blob, { type: blob.type || f.type });
+      formReceipts.push({ id: r.id, type: r.contentType });
+      rcUploaded.push(r.id);
+      renderThumbs();
+      formError('');
+    } catch (err) { formError(rcErrorText(err)); }
+    rcBusy--;
+  }
+  $('rcStatus').textContent = '';
+};
+$('rcThumbs').onclick = e => {
+  const id = e.target.dataset.rm; if (!id) return;
+  formReceipts = formReceipts.filter(r => r.id !== id);
+  if (rcUploaded.includes(id)) { rcUploaded = rcUploaded.filter(x => x !== id); deleteAsset(id); }
+  else rcRemoved.push(id); // supprimé après « Enregistrer »
+  renderThumbs();
+};
+
+function openReceipts(id) {
+  const m = state.movements.find(x => x.id === id); if (!m) return;
+  $('rcTitle').textContent = `Justificatifs · ${fmtDate(m.date)} · ${fmt(m.amount)}${m.cat ? ' · ' + m.cat : ''}`;
+  $('rcList').innerHTML = (m.receipts || []).map((r, i) => isPdf(r)
+    ? `<div class="pdf"><span>Document PDF ${i + 1}</span><a href="${blobUrl(r.id)}" target="_blank" rel="noopener">Ouvrir</a></div>`
+    : `<img src="${blobUrl(r.id)}" alt="Justificatif ${i + 1}" loading="lazy">`).join('');
+  $('dlgRc').showModal();
+}
+$('rcClose').onclick = () => $('dlgRc').close();
 
 function formError(text) { $('mMsg').textContent = text; $('mMsg').hidden = !text; }
 function submitMov() {
@@ -513,11 +641,17 @@ function submitMov() {
     desc: $('mDesc').value.trim(),
   };
   if (m.type === 'transfer') m.to = $('mTo').value;
-  storeMovement(m).then(() => { resetForm(); render(); }, () => {});
+  if (rcBusy) return formError('Attendez la fin de l’envoi des justificatifs.');
+  m.receipts = formReceipts.map(r => ({ ...r }));
+  const removed = rcRemoved.slice();
+  storeMovement(m).then(() => {
+    for (const id of removed) deleteAsset(id);
+    resetForm(false); render();
+  }, () => {});
 }
 $('mSubmit').onclick = submitMov;
 $('movForm').onsubmit = e => { e.preventDefault(); submitMov(); };
-$('mCancel').onclick = resetForm;
+$('mCancel').onclick = () => resetForm();
 
 function transferLabel(m) {
   if (m.to === 'banca') return 'Dépôt à la banque';
@@ -541,10 +675,12 @@ $('accounts').onclick = e => {
 };
 
 $('movBody').onclick = e => {
-  const ed = e.target.dataset.edit, del = e.target.dataset.del;
+  const ed = e.target.dataset.edit, del = e.target.dataset.del, view = e.target.dataset.view;
+  if (view) openReceipts(view);
   if (del) {
     if (e.target.dataset.armed) {
-      removeMovement(del).catch(() => {});
+      const gone = state.movements.find(m => m.id === del);
+      removeMovement(del).then(() => { for (const r of (gone && gone.receipts) || []) deleteAsset(r.id); }, () => {});
     } else {
       e.target.dataset.armed = '1';
       e.target.textContent = 'Confirmer ?';
@@ -553,7 +689,10 @@ $('movBody').onclick = e => {
   }
   if (ed) {
     const m = state.movements.find(x => x.id === ed); if (!m) return;
+    resetForm();
     editingId = m.id;
+    formReceipts = (m.receipts || []).map(r => ({ ...r }));
+    renderThumbs();
     $('mDate').value = m.date; $('mType').value = m.type; $('mAcc').value = m.acc;
     syncType(); if (m.to) $('mTo').value = m.to;
     $('mAmount').value = m.amount; $('mCat').value = m.cat || ''; $('mDesc').value = m.desc || '';
@@ -567,7 +706,7 @@ $('movBody').onclick = e => {
 // ---------- Filtres ----------
 $('fQuick').onchange = () => { applyQuick(); render(); };
 $('fFrom').onchange = $('fTo').onchange = () => { $('fQuick').value = ''; render(); };
-$('tAcc').onchange = $('tType').onchange = $('tSearch').oninput = render;
+$('tAcc').onchange = $('tType').onchange = $('tNoRc').onchange = $('tSearch').oninput = render;
 
 // ---------- Soldes initiaux ----------
 $('btnSaldi').onclick = () => {
@@ -611,9 +750,9 @@ $('fileImport').onchange = async e => {
 $('btnCsv').onclick = () => {
   const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
   const tipo = { in: 'Recette', out: 'Dépense', transfer: 'Transfert' };
-  const lines = [['Date', 'Type', 'Caisse', 'Vers', 'Montant (CHF)', 'Catégorie', 'Description'].join(';')];
+  const lines = [['Date', 'Type', 'Caisse', 'Vers', 'Montant (CHF)', 'Catégorie', 'Description', 'Justificatifs'].join(';')];
   for (const m of [...state.movements].filter(m => inPeriod(m.date)).sort((a, b) => a.date.localeCompare(b.date)))
-    lines.push([m.date, tipo[m.type], ACC[m.acc]?.name, m.to ? ACC[m.to]?.name : '', m.amount.toFixed(2), m.cat, m.desc].map(q).join(';'));
+    lines.push([m.date, tipo[m.type], ACC[m.acc]?.name, m.to ? ACC[m.to]?.name : '', m.amount.toFixed(2), m.cat, m.desc, (m.receipts || []).length].map(q).join(';'));
   download(`bioevents-mouvements-${today()}.csv`, '﻿' + lines.join('\n'), 'text/csv');
 };
 
