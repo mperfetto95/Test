@@ -185,11 +185,11 @@
       <div class="receipts">
         <span class="lbl">Justificatifs (photos de tickets, factures PDF)</span>
         <div class="thumbs" id="rcThumbs">
-          <button type="button" id="rcAdd" hidden>+ Ajouter une photo ou un PDF</button>
+          <button type="button" id="rcAdd" hidden>+ Ajouter une photo (JPG, PNG…) ou un PDF</button>
           <span class="muted" id="rcStatus"></span>
           <span class="muted" id="rcOffline">Disponible dans la version en ligne de la page.</span>
         </div>
-        <input type="file" id="rcInput" accept="image/*,application/pdf" multiple hidden>
+        <input type="file" id="rcInput" accept="image/*,.jpg,.jpeg,.png,.webp,.heic,.pdf,application/pdf" multiple hidden>
       </div>
       <div class="row" style="margin-top:14px">
         <button class="primary" type="button" id="mSubmit">Ajouter</button>
@@ -634,9 +634,19 @@ function renderThumbs() {
   fillSrcs(box);
 }
 
-// Réduit les photos de téléphone (souvent 4-8 Mo) à 1600 px en JPEG.
+// Type réel du fichier : certains systèmes envoient « image/jpg » ou rien du tout
+// pour un .jpg ; le stockage en ligne n'accepte que « image/jpeg ».
+const EXT_TYPES = { jpg: 'image/jpeg', jpeg: 'image/jpeg', jfif: 'image/jpeg', png: 'image/png', webp: 'image/webp', gif: 'image/gif', heic: 'image/heic', heif: 'image/heif', pdf: 'application/pdf' };
+function fileType(file) {
+  const ext = (file.name.split('.').pop() || '').toLowerCase();
+  const t = (file.type || '').toLowerCase();
+  if (t === 'image/jpg' || t === 'image/pjpeg') return 'image/jpeg';
+  return EXT_TYPES[ext] || t;
+}
+
+// Réduit les photos de téléphone (souvent 4-8 Mo) à 1600 px et les convertit en JPEG.
 async function shrink(file) {
-  if (!/^image\/(jpeg|png|webp|heic|heif)$/.test(file.type)) return file;
+  if (!fileType(file).startsWith('image/') || fileType(file) === 'image/gif') return file;
   try {
     const img = await createImageBitmap(file);
     const k = Math.min(1, 1600 / Math.max(img.width, img.height));
@@ -651,7 +661,7 @@ async function shrink(file) {
 function rcErrorText(e) {
   const code = e && e.code;
   if (code === 'too_large') return 'Fichier trop lourd (20 Mo maximum).';
-  if (code === 'unsupported_type') return 'Format non accepté : utilisez une photo (JPEG, PNG) ou un PDF.';
+  if (code === 'unsupported_type') return 'Format non accepté : utilisez une photo JPG, PNG ou WEBP, ou un PDF. Les photos HEIC d’iPhone ne sont pas lisibles par tous les navigateurs : exportez-les en JPG.';
   if (code === 'quota_or_state') return 'L’espace pour les justificatifs est plein.';
   if (code === 'local_full') return 'Plus de place dans ce navigateur pour les justificatifs.';
   if (code === 'rate_limited') return 'Trop d’envois d’un coup. Réessayez dans un instant.';
@@ -665,8 +675,9 @@ $('rcInput').onchange = async e => {
     rcBusy++;
     $('rcStatus').textContent = `Envoi de ${f.name}…`;
     try {
+      if (!/^(image\/|application\/pdf$)/.test(fileType(f))) throw { code: 'unsupported_type' };
       const blob = await shrink(f);
-      const r = await rcUpload(blob, blob.type || f.type);
+      const r = await rcUpload(blob, blob === f ? fileType(f) : 'image/jpeg');
       formReceipts.push(r);
       rcUploaded.push(r.id);
       renderThumbs();
@@ -846,7 +857,7 @@ $('fileImport').onchange = async e => {
         const f = files[r.id];
         if (!f || moved[r.id]) continue;
         notify(`Restauration des justificatifs… ${++done} / ${n}`, true);
-        try { moved[r.id] = await rcUpload(new Blob([fromB64(f.data)], { type: f.type }), f.type); }
+        try { moved[r.id] = await rcUpload(new Blob([fromB64(f.data)], { type: f.type }), f.type === 'image/jpg' ? 'image/jpeg' : f.type); }
         catch (err) { failed++; }
       }
       m.receipts = m.receipts.map(r => moved[r.id] || r);
