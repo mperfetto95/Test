@@ -538,14 +538,82 @@ function resetForm(discard = true) {
   syncType();
 }
 
-// ---------- Justificatifs (photos / PDF, version en ligne) ----------
-// Les fichiers sont stockés comme « assets » de la page ; le mouvement garde
-// seulement leurs identifiants : receipts: [{ id, type }].
+// ---------- Justificatifs (photos / PDF) ----------
+// Le mouvement garde seulement les identifiants : receipts: [{ id, type }].
+// En ligne, les fichiers sont des « assets » de la page ; sur l'ordinateur,
+// ils sont dans la base IndexedDB du navigateur (bien plus grande que localStorage).
 let assets = null, formReceipts = [], rcUploaded = [], rcRemoved = [], rcBusy = 0;
 const blobUrl = id => '/_blob/' + encodeURIComponent(id);
 const isPdf = r => r.type === 'application/pdf';
 
-function deleteAsset(id) { if (assets) assets.delete(id).catch(() => {}); }
+const idb = {
+  open() {
+    return this.p || (this.p = new Promise((res, rej) => {
+      const r = indexedDB.open('bioevents-justificatifs', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('files');
+      r.onsuccess = () => res(r.result);
+      r.onerror = () => rej(r.error);
+    }));
+  },
+  async run(mode, fn) {
+    const d = await this.open();
+    return new Promise((res, rej) => {
+      const t = d.transaction('files', mode), req = fn(t.objectStore('files'));
+      t.oncomplete = () => res(req.result);
+      t.onerror = t.onabort = () => rej(t.error);
+    });
+  },
+  put(id, v) { return this.run('readwrite', s => s.put(v, id)); },
+  get(id) { return this.run('readonly', s => s.get(id)); },
+  del(id) { return this.run('readwrite', s => s.delete(id)); },
+};
+
+async function rcUpload(blob, type) {
+  if (db) {
+    if (!assets) throw { code: 'not_granted' };
+    const r = await assets.upload(blob, { type });
+    return { id: r.id, type: r.contentType };
+  }
+  const id = 'L' + uid();
+  try { await idb.put(id, { type, buf: await blob.arrayBuffer() }); }
+  catch (e) { throw { code: 'local_full' }; }
+  return { id, type };
+}
+const urlCache = {};
+async function rcUrl(id) {
+  if (db) return blobUrl(id);
+  if (!(id in urlCache)) {
+    const f = await idb.get(id).catch(() => null);
+    urlCache[id] = f ? URL.createObjectURL(new Blob([f.buf], { type: f.type })) : '';
+  }
+  return urlCache[id];
+}
+// Remplit les src/href des éléments marqués data-rc="<id>".
+function fillSrcs(root) {
+  root.querySelectorAll('[data-rc]').forEach(async el => {
+    const u = await rcUrl(el.dataset.rc);
+    if (el.tagName === 'IMG') el.src = u; else el.href = u;
+  });
+}
+async function rcBlob(id) {
+  if (!db) { const f = await idb.get(id); return f ? new Blob([f.buf], { type: f.type }) : null; }
+  const r = await fetch(blobUrl(id));
+  return r.ok ? r.blob() : null;
+}
+function deleteAsset(id) {
+  if (db) { if (assets) assets.delete(id).catch(() => {}); }
+  else idb.del(id).catch(() => {});
+  if (urlCache[id]) URL.revokeObjectURL(urlCache[id]);
+  delete urlCache[id];
+}
+// Sur l'ordinateur : activer le bouton si IndexedDB fonctionne.
+idb.open().then(() => {
+  if (db) return;
+  $('rcAdd').hidden = false; $('rcOffline').hidden = true;
+}, () => {
+  if (db) return;
+  $('rcOffline').textContent = 'Ce navigateur ne permet pas d’enregistrer des justificatifs ici. Ouvrez le fichier dans Chrome, Firefox ou Safari.';
+});
 
 function rcCell(m) {
   const n = (m.receipts || []).length;
@@ -559,10 +627,11 @@ function renderThumbs() {
   for (const r of formReceipts) {
     const t = document.createElement('div');
     t.className = 'thumb';
-    t.innerHTML = (isPdf(r) ? 'PDF' : `<img src="${blobUrl(r.id)}" alt="Justificatif">`) +
+    t.innerHTML = (isPdf(r) ? 'PDF' : `<img data-rc="${esc(r.id)}" alt="Justificatif">`) +
       `<button type="button" data-rm="${esc(r.id)}" aria-label="Retirer ce justificatif">×</button>`;
     box.insertBefore(t, $('rcAdd'));
   }
+  fillSrcs(box);
 }
 
 // Réduit les photos de téléphone (souvent 4-8 Mo) à 1600 px en JPEG.
@@ -584,6 +653,7 @@ function rcErrorText(e) {
   if (code === 'too_large') return 'Fichier trop lourd (20 Mo maximum).';
   if (code === 'unsupported_type') return 'Format non accepté : utilisez une photo (JPEG, PNG) ou un PDF.';
   if (code === 'quota_or_state') return 'L’espace pour les justificatifs est plein.';
+  if (code === 'local_full') return 'Plus de place dans ce navigateur pour les justificatifs.';
   if (code === 'rate_limited') return 'Trop d’envois d’un coup. Réessayez dans un instant.';
   return 'Envoi du justificatif impossible. Réessayez.';
 }
@@ -596,8 +666,8 @@ $('rcInput').onchange = async e => {
     $('rcStatus').textContent = `Envoi de ${f.name}…`;
     try {
       const blob = await shrink(f);
-      const r = await assets.upload(blob, { type: blob.type || f.type });
-      formReceipts.push({ id: r.id, type: r.contentType });
+      const r = await rcUpload(blob, blob.type || f.type);
+      formReceipts.push(r);
       rcUploaded.push(r.id);
       renderThumbs();
       formError('');
@@ -618,8 +688,9 @@ function openReceipts(id) {
   const m = state.movements.find(x => x.id === id); if (!m) return;
   $('rcTitle').textContent = `Justificatifs · ${fmtDate(m.date)} · ${fmt(m.amount)}${m.cat ? ' · ' + m.cat : ''}`;
   $('rcList').innerHTML = (m.receipts || []).map((r, i) => isPdf(r)
-    ? `<div class="pdf"><span>Document PDF ${i + 1}</span><a href="${blobUrl(r.id)}" target="_blank" rel="noopener">Ouvrir</a></div>`
-    : `<img src="${blobUrl(r.id)}" alt="Justificatif ${i + 1}" loading="lazy">`).join('');
+    ? `<div class="pdf"><span>Document PDF ${i + 1}</span><a data-rc="${esc(r.id)}" target="_blank" rel="noopener">Ouvrir</a></div>`
+    : `<img data-rc="${esc(r.id)}" alt="Justificatif ${i + 1}">`).join('');
+  fillSrcs($('rcList'));
   $('dlgRc').showModal();
 }
 $('rcClose').onclick = () => $('dlgRc').close();
@@ -733,7 +804,30 @@ async function download(name, content, type) {
   const a = Object.assign(document.createElement('a'), { href: url, download: name });
   a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
-$('btnExport').onclick = () => download(`bioevents-caisses-${today()}.json`, JSON.stringify(state, null, 2), 'application/json');
+// La sauvegarde contient aussi les justificatifs (en base64), pour pouvoir
+// tout restaurer sur un autre ordinateur ou dans la version en ligne.
+function toB64(buf) {
+  const a = new Uint8Array(buf); let s = '';
+  for (let i = 0; i < a.length; i += 0x8000) s += String.fromCharCode.apply(null, a.subarray(i, i + 0x8000));
+  return btoa(s);
+}
+function fromB64(str) { const s = atob(str), a = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) a[i] = s.charCodeAt(i); return a; }
+
+$('btnExport').onclick = async () => {
+  const out = { initial: state.initial, movements: state.movements, files: {} };
+  const ids = state.movements.flatMap(m => (m.receipts || []).map(r => r.id));
+  let missing = 0;
+  for (const [i, id] of ids.entries()) {
+    notify(`Préparation de la sauvegarde… justificatif ${i + 1} / ${ids.length}`, true);
+    try {
+      const b = await rcBlob(id);
+      if (b) out.files[id] = { type: b.type, data: toB64(await b.arrayBuffer()) }; else missing++;
+    } catch (e) { missing++; }
+  }
+  if (missing) notify(`${missing} justificatif(s) n’ont pas pu être inclus dans la sauvegarde.`);
+  else document.getElementById('notice').hidden = true;
+  download(`bioevents-caisses-${today()}.json`, JSON.stringify(out), 'application/json');
+};
 $('btnImport').onclick = () => $('fileImport').click();
 $('fileImport').onchange = async e => {
   const f = e.target.files[0]; if (!f) return;
@@ -742,7 +836,26 @@ $('fileImport').onchange = async e => {
     if (!Array.isArray(data.movements)) throw new Error();
     const valid = data.movements.filter(m => m && /^[A-Za-z0-9_.~:@+-]{1,100}$/.test(m.id) && m.date && ACC[m.acc] && m.amount > 0);
     notify(`Restauration de ${valid.length} mouvements…`, true);
+    // Réenregistre les justificatifs contenus dans la sauvegarde (nouveaux identifiants).
+    const files = data.files || {}, moved = {};
+    const n = Object.keys(files).length;
+    let done = 0, failed = 0;
+    for (const m of valid) {
+      m.receipts = (Array.isArray(m.receipts) ? m.receipts : []).filter(r => r && typeof r.id === 'string');
+      for (const r of m.receipts) {
+        const f = files[r.id];
+        if (!f || moved[r.id]) continue;
+        notify(`Restauration des justificatifs… ${++done} / ${n}`, true);
+        try { moved[r.id] = await rcUpload(new Blob([fromB64(f.data)], { type: f.type }), f.type); }
+        catch (err) { failed++; }
+      }
+      m.receipts = m.receipts.map(r => moved[r.id] || r);
+    }
+    const oldIds = state.movements.flatMap(m => (m.receipts || []).map(r => r.id));
     await replaceAll({ initial: data.initial || {}, movements: valid });
+    const keep = new Set(valid.flatMap(m => m.receipts.map(r => r.id)));
+    for (const id of oldIds) if (!keep.has(id)) deleteAsset(id);
+    if (failed) { notify(`${valid.length} mouvements restaurés, mais ${failed} justificatif(s) n’ont pas pu être enregistrés.`); e.target.value = ''; return; }
     notify(`${valid.length} mouvements restaurés.`, true);
   } catch (err) { if (!db || !err || !err.code) notify('Fichier non valide.'); }
   e.target.value = '';
