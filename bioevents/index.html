@@ -47,6 +47,7 @@
   .mode::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
   .mode.shared::before { background: var(--in); }
   body.readonly .write-only { display: none !important; }
+  body.rc-off .rc-only { display: none !important; }
   main { max-width: 1200px; margin: 0 auto; padding: 20px 16px 60px; display: grid; gap: 20px; }
   .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px; box-shadow: var(--shadow); }
   h2 { font-size: 15px; font-weight: 650; margin-bottom: 12px; }
@@ -113,6 +114,13 @@
   .rc-list .pdf { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; }
   label.check { display: inline-flex; flex-direction: row; align-items: center; gap: 6px; font-size: 13px; color: var(--text); }
   #dlgRc { max-width: 640px; }
+  .inbox { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-top: 12px; }
+  .inbox-item { display: grid; gap: 8px; padding: 10px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); }
+  .inbox-item .pic { display: grid; place-items: center; height: 140px; border-radius: 6px; overflow: hidden; background: var(--card); border: 1px solid var(--border); cursor: zoom-in; font-weight: 650; color: var(--muted); padding: 0; width: 100%; }
+  .inbox-item .pic img { width: 100%; height: 100%; object-fit: cover; }
+  .inbox-item select { width: 100%; }
+  .inbox-item .acts { display: flex; flex-wrap: wrap; gap: 6px; }
+  .inbox-item .acts button { flex: 1 1 auto; }
   dialog { border: 1px solid var(--border); border-radius: 12px; padding: 20px; background: var(--card); color: var(--text); max-width: 420px; width: calc(100% - 32px); }
   dialog::backdrop { background: rgba(0,0,0,.4); }
   dialog .row > label { flex: 1 1 100%; }
@@ -200,6 +208,20 @@
     </form>
   </section>
 
+  <!-- Justificatifs à classer -->
+  <section class="card write-only rc-only" id="inboxCard">
+    <div class="row" style="justify-content:space-between">
+      <div>
+        <h2 style="margin:0">Justificatifs à classer</h2>
+        <p class="muted" style="margin-top:4px">Photos de tickets pas encore liées à un mouvement. Associez-les plus tard, ou créez le mouvement à partir de la photo.</p>
+      </div>
+      <button type="button" id="inboxAdd">+ Ajouter des photos</button>
+    </div>
+    <div class="inbox" id="inbox"></div>
+    <input type="file" id="inboxInput" accept="image/*,.jpg,.jpeg,.png,.webp,.heic,.pdf,application/pdf" multiple hidden>
+    <input type="file" id="rowInput" accept="image/*,.jpg,.jpeg,.png,.webp,.heic,.pdf,application/pdf" multiple hidden>
+  </section>
+
   <!-- Graphique mensuel -->
   <section class="card">
     <h2>Évolution mensuelle (recettes vs dépenses)</h2>
@@ -284,9 +306,9 @@ const parseAmount = v => parseFloat(String(v).replace(/[\s'’]/g, '').replace('
 function load() {
   try {
     const s = JSON.parse(localStorage.getItem(STORE_KEY));
-    if (s && Array.isArray(s.movements)) return { initial: s.initial || {}, movements: s.movements };
+    if (s && Array.isArray(s.movements)) return { initial: s.initial || {}, movements: s.movements, loose: Array.isArray(s.loose) ? s.loose : [] };
   } catch (e) {}
-  return { initial: {}, movements: [] };
+  return { initial: {}, movements: [], loose: [] };
 }
 function save() {
   try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
@@ -322,10 +344,23 @@ async function storeInitial(initial) {
   state.initial = initial;
   save(); render();
 }
+// Justificatifs pas encore liés à un mouvement : { id, type, added }.
+async function storeLoose(r) {
+  if (db) return db.doc('loose/' + r.id).set({ type: r.type, added: r.added }).catch(dbError);
+  state.loose = state.loose.filter(x => x.id !== r.id).concat(r);
+  save(); render();
+}
+async function removeLoose(id) {
+  if (db) return db.doc('loose/' + id).delete().catch(dbError);
+  state.loose = state.loose.filter(x => x.id !== id);
+  save(); render();
+}
 async function replaceAll(data) {
   if (!db) { state = data; save(); render(); return; }
   for (const m of state.movements) if (!data.movements.some(x => x.id === m.id)) await removeMovement(m.id);
   for (const m of data.movements) await storeMovement(m);
+  for (const r of state.loose) if (!data.loose.some(x => x.id === r.id)) await removeLoose(r.id);
+  for (const r of data.loose) await storeLoose(r);
   await storeInitial(data.initial);
 }
 
@@ -334,10 +369,8 @@ async function connectShared() {
   db = await window.claude.use('db');
   if (!db) return;
   assets = await window.claude.use('assets');
-  $('rcAdd').hidden = !assets;
-  $('rcOffline').hidden = !!assets;
-  if (!assets) $('rcOffline').textContent = 'Vous ne pouvez pas ajouter de justificatifs avec votre accès actuel.';
-  state = { initial: {}, movements: [] };
+  setRcAvailable(!!assets, 'Vous ne pouvez pas ajouter de justificatifs avec votre accès actuel.');
+  state = { initial: {}, movements: [], loose: [] };
   $('mode').textContent = 'Données partagées en ligne · mises à jour en direct';
   $('mode').classList.add('shared');
   render();
@@ -345,6 +378,10 @@ async function connectShared() {
     state.movements = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     render();
   }, () => notify('Connexion aux données partagées perdue. Rechargez la page.'));
+  db.collection('loose').onSnapshot(snap => {
+    state.loose = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    render();
+  }, () => {});
   db.doc('settings/initial').onSnapshot(snap => {
     state.initial = snap.exists ? { ...snap.data() } : {};
     render();
@@ -431,6 +468,7 @@ function render() {
   renderChart(periodMovs);
   renderCats(periodMovs);
   renderTable(periodMovs);
+  renderInbox();
 
   const cats = [...new Set(state.movements.map(m => m.cat).filter(Boolean))].sort();
   $('catList').innerHTML = cats.map(c => `<option value="${esc(c)}">`).join('');
@@ -526,7 +564,7 @@ $('mAcc').onchange = syncType;
 
 function resetForm(discard = true) {
   if (discard) for (const id of rcUploaded) deleteAsset(id);
-  rcUploaded = []; rcRemoved = []; formReceipts = [];
+  rcUploaded = []; rcRemoved = []; formReceipts = []; pendingLoose = null;
   renderThumbs();
   editingId = null;
   $('movForm').reset();
@@ -607,18 +645,21 @@ function deleteAsset(id) {
   delete urlCache[id];
 }
 // Sur l'ordinateur : activer le bouton si IndexedDB fonctionne.
-idb.open().then(() => {
-  if (db) return;
-  $('rcAdd').hidden = false; $('rcOffline').hidden = true;
-}, () => {
-  if (db) return;
-  $('rcOffline').textContent = 'Ce navigateur ne permet pas d’enregistrer des justificatifs ici. Ouvrez le fichier dans Chrome, Firefox ou Safari.';
-});
+function setRcAvailable(ok, why) {
+  $('rcAdd').hidden = !ok;
+  $('rcOffline').hidden = ok;
+  if (!ok && why) $('rcOffline').textContent = why;
+  document.body.classList.toggle('rc-off', !ok);
+}
+document.body.classList.add('rc-off');
+idb.open().then(() => { if (!db) setRcAvailable(true); },
+  () => { if (!db) setRcAvailable(false, 'Ce navigateur ne permet pas d’enregistrer des justificatifs ici. Ouvrez le fichier dans Chrome, Firefox ou Safari.'); });
 
 function rcCell(m) {
   const n = (m.receipts || []).length;
-  if (n) return `<button class="small" data-view="${m.id}">Voir (${n})</button>`;
-  return m.type === 'transfer' ? '' : `<span class="chip${m.type === 'out' ? ' warn' : ''}">Aucun</span>`;
+  const add = `<button class="small write-only rc-only" data-addrc="${m.id}" title="Joindre une photo à ce mouvement">+ Photo</button>`;
+  if (n) return `<button class="small" data-view="${m.id}">Voir (${n})</button> ${add}`;
+  return (m.type === 'transfer' ? '' : `<span class="chip${m.type === 'out' ? ' warn' : ''}">Aucun</span> `) + add;
 }
 
 function renderThumbs() {
@@ -690,7 +731,8 @@ $('rcInput').onchange = async e => {
 $('rcThumbs').onclick = e => {
   const id = e.target.dataset.rm; if (!id) return;
   formReceipts = formReceipts.filter(r => r.id !== id);
-  if (rcUploaded.includes(id)) { rcUploaded = rcUploaded.filter(x => x !== id); deleteAsset(id); }
+  if (id === pendingLoose) pendingLoose = null; // reste dans « à classer »
+  else if (rcUploaded.includes(id)) { rcUploaded = rcUploaded.filter(x => x !== id); deleteAsset(id); }
   else rcRemoved.push(id); // supprimé après « Enregistrer »
   renderThumbs();
 };
@@ -705,6 +747,113 @@ function openReceipts(id) {
   $('dlgRc').showModal();
 }
 $('rcClose').onclick = () => $('dlgRc').close();
+
+// Envoie une liste de fichiers et renvoie les justificatifs enregistrés.
+async function uploadFiles(files, onError) {
+  const out = [];
+  for (const f of files) {
+    rcBusy++;
+    try {
+      if (!/^(image\/|application\/pdf$)/.test(fileType(f))) throw { code: 'unsupported_type' };
+      notify(`Envoi de ${f.name}…`, true);
+      const blob = await shrink(f);
+      out.push(await rcUpload(blob, blob === f ? fileType(f) : 'image/jpeg'));
+    } catch (err) { onError(rcErrorText(err)); }
+    rcBusy--;
+  }
+  return out;
+}
+
+// Joindre directement une photo à un mouvement déjà enregistré.
+let rowTarget = null;
+$('rowInput').onchange = async e => {
+  const files = [...e.target.files]; e.target.value = '';
+  const id = rowTarget; rowTarget = null;
+  let failed = '';
+  const added = await uploadFiles(files, t => failed = t);
+  const m = state.movements.find(x => x.id === id);
+  if (!m) { added.forEach(r => deleteAsset(r.id)); return; }
+  if (added.length) await storeMovement({ ...m, receipts: [...(m.receipts || []), ...added] }).catch(() => added.forEach(r => deleteAsset(r.id)));
+  if (failed) notify(failed); else notify(`${added.length} justificatif(s) ajouté(s) au mouvement du ${fmtDate(m.date)}.`, true);
+};
+
+// ---------- Justificatifs à classer ----------
+let pendingLoose = null; // justificatif « à classer » repris dans le formulaire
+$('inboxAdd').onclick = () => $('inboxInput').click();
+$('inboxInput').onchange = async e => {
+  const files = [...e.target.files]; e.target.value = '';
+  let failed = '';
+  const added = await uploadFiles(files, t => failed = t);
+  for (const r of added) await storeLoose({ ...r, added: today() }).catch(() => deleteAsset(r.id));
+  if (failed) notify(failed); else if (added.length) notify(`${added.length} justificatif(s) à classer ajouté(s).`, true);
+};
+
+function movementLabel(m) {
+  const where = m.type === 'transfer' ? `${ACC[m.acc]?.name} → ${ACC[m.to]?.name}` : ACC[m.acc]?.name;
+  const sign = m.type === 'in' ? '+' : m.type === 'out' ? '−' : '';
+  return `${fmtDate(m.date)} · ${where} · ${sign}${fmt(m.amount)}${m.cat ? ' · ' + m.cat : ''}`;
+}
+
+function renderInbox() {
+  const items = [...state.loose].sort((a, b) => (b.added || '').localeCompare(a.added || ''));
+  const opts = [...state.movements].sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id)).slice(0, 300)
+    .map(m => `<option value="${m.id}">${esc(movementLabel(m))}${(m.receipts || []).length ? '' : ' · sans justificatif'}</option>`).join('');
+  const picked = {};
+  $('inbox').querySelectorAll('select').forEach(sel => picked[sel.id] = sel.value);
+  $('inbox').innerHTML = items.length ? items.map(r => `
+    <div class="inbox-item">
+      <button type="button" class="pic" data-zoom="${esc(r.id)}" aria-label="Agrandir">${isPdf(r) ? 'PDF' : `<img data-rc="${esc(r.id)}" alt="Justificatif à classer">`}</button>
+      <span class="muted">Ajouté le ${fmtDate(r.added)}</span>
+      <select id="link-${esc(r.id)}" aria-label="Mouvement à associer"><option value="">Associer à un mouvement…</option>${opts}</select>
+      <div class="acts">
+        <button type="button" class="small" data-link="${esc(r.id)}">Associer</button>
+        <button type="button" class="small" data-new="${esc(r.id)}">Créer un mouvement</button>
+        <button type="button" class="small danger" data-drop="${esc(r.id)}">Supprimer</button>
+      </div>
+    </div>`).join('') : '<div class="empty" style="grid-column:1/-1">Aucun justificatif à classer.</div>';
+  for (const [id, v] of Object.entries(picked)) { const sel = document.getElementById(id); if (sel) sel.value = v; }
+  fillSrcs($('inbox'));
+}
+
+$('inbox').onclick = async e => {
+  const t = e.target.closest('button'); if (!t) return;
+  const d = t.dataset, r = state.loose.find(x => x.id === (d.zoom || d.link || d.new || d.drop));
+  if (!r) return;
+  if (d.zoom) {
+    $('rcTitle').textContent = `Justificatif à classer · ajouté le ${fmtDate(r.added)}`;
+    $('rcList').innerHTML = isPdf(r) ? `<div class="pdf"><span>Document PDF</span><a data-rc="${esc(r.id)}" target="_blank" rel="noopener">Ouvrir</a></div>` : `<img data-rc="${esc(r.id)}" alt="Justificatif">`;
+    fillSrcs($('rcList'));
+    $('dlgRc').showModal();
+  }
+  if (d.link) {
+    const m = state.movements.find(x => x.id === $('link-' + r.id).value);
+    if (!m) return notify('Choisissez d’abord le mouvement dans la liste.');
+    try {
+      await storeMovement({ ...m, receipts: [...(m.receipts || []), { id: r.id, type: r.type }] });
+      await removeLoose(r.id);
+      notify(`Justificatif associé au mouvement du ${fmtDate(m.date)}.`, true);
+    } catch (err) {}
+  }
+  if (d.new) {
+    resetForm();
+    pendingLoose = r.id;
+    formReceipts = [{ id: r.id, type: r.type }];
+    renderThumbs();
+    $('mType').value = 'out'; syncType();
+    $('formTitle').textContent = 'Nouveau mouvement à partir du justificatif';
+    $('mCancel').hidden = false;
+    $('form').scrollIntoView({ behavior: 'smooth' });
+    $('mAmount').focus({ preventScroll: true });
+  }
+  if (d.drop) {
+    if (!t.dataset.armed) {
+      t.dataset.armed = '1'; t.textContent = 'Confirmer ?';
+      setTimeout(() => { if (t.isConnected) { delete t.dataset.armed; t.textContent = 'Supprimer'; } }, 3000);
+      return;
+    }
+    removeLoose(r.id).then(() => deleteAsset(r.id), () => {});
+  }
+};
 
 function formError(text) { $('mMsg').textContent = text; $('mMsg').hidden = !text; }
 function submitMov() {
@@ -725,8 +874,9 @@ function submitMov() {
   if (m.type === 'transfer') m.to = $('mTo').value;
   if (rcBusy) return formError('Attendez la fin de l’envoi des justificatifs.');
   m.receipts = formReceipts.map(r => ({ ...r }));
-  const removed = rcRemoved.slice();
-  storeMovement(m).then(() => {
+  const removed = rcRemoved.slice(), fromLoose = pendingLoose;
+  storeMovement(m).then(async () => {
+    if (fromLoose) await removeLoose(fromLoose).catch(() => {});
     for (const id of removed) deleteAsset(id);
     resetForm(false); render();
   }, () => {});
@@ -759,6 +909,7 @@ $('accounts').onclick = e => {
 $('movBody').onclick = e => {
   const ed = e.target.dataset.edit, del = e.target.dataset.del, view = e.target.dataset.view;
   if (view) openReceipts(view);
+  if (e.target.dataset.addrc) { rowTarget = e.target.dataset.addrc; $('rowInput').click(); }
   if (del) {
     if (e.target.dataset.armed) {
       const gone = state.movements.find(m => m.id === del);
@@ -825,8 +976,8 @@ function toB64(buf) {
 function fromB64(str) { const s = atob(str), a = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) a[i] = s.charCodeAt(i); return a; }
 
 $('btnExport').onclick = async () => {
-  const out = { initial: state.initial, movements: state.movements, files: {} };
-  const ids = state.movements.flatMap(m => (m.receipts || []).map(r => r.id));
+  const out = { initial: state.initial, movements: state.movements, loose: state.loose, files: {} };
+  const ids = state.movements.flatMap(m => (m.receipts || []).map(r => r.id)).concat(state.loose.map(r => r.id));
   let missing = 0;
   for (const [i, id] of ids.entries()) {
     notify(`Préparation de la sauvegarde… justificatif ${i + 1} / ${ids.length}`, true);
@@ -851,20 +1002,29 @@ $('fileImport').onchange = async e => {
     const files = data.files || {}, moved = {};
     const n = Object.keys(files).length;
     let done = 0, failed = 0;
-    for (const m of valid) {
-      m.receipts = (Array.isArray(m.receipts) ? m.receipts : []).filter(r => r && typeof r.id === 'string');
-      for (const r of m.receipts) {
-        const f = files[r.id];
-        if (!f || moved[r.id]) continue;
+    const restore = async r => {
+      const f = files[r.id];
+      if (f && !moved[r.id]) {
         notify(`Restauration des justificatifs… ${++done} / ${n}`, true);
         try { moved[r.id] = await rcUpload(new Blob([fromB64(f.data)], { type: f.type }), f.type === 'image/jpg' ? 'image/jpeg' : f.type); }
         catch (err) { failed++; }
       }
-      m.receipts = m.receipts.map(r => moved[r.id] || r);
+      return moved[r.id] || r;
+    };
+    const okRc = r => r && typeof r.id === 'string' && /^[A-Za-z0-9_.~:@+-]{1,100}$/.test(r.id);
+    for (const m of valid) {
+      const list = (Array.isArray(m.receipts) ? m.receipts : []).filter(okRc);
+      m.receipts = [];
+      for (const r of list) m.receipts.push(await restore(r));
     }
-    const oldIds = state.movements.flatMap(m => (m.receipts || []).map(r => r.id));
-    await replaceAll({ initial: data.initial || {}, movements: valid });
-    const keep = new Set(valid.flatMap(m => m.receipts.map(r => r.id)));
+    const loose = [];
+    for (const r of (Array.isArray(data.loose) ? data.loose : []).filter(okRc)) {
+      const nr = await restore(r);
+      loose.push({ id: nr.id, type: nr.type || r.type, added: r.added || today() });
+    }
+    const oldIds = state.movements.flatMap(m => (m.receipts || []).map(r => r.id)).concat(state.loose.map(r => r.id));
+    await replaceAll({ initial: data.initial || {}, movements: valid, loose });
+    const keep = new Set(valid.flatMap(m => m.receipts.map(r => r.id)).concat(loose.map(r => r.id)));
     for (const id of oldIds) if (!keep.has(id)) deleteAsset(id);
     if (failed) { notify(`${valid.length} mouvements restaurés, mais ${failed} justificatif(s) n’ont pas pu être enregistrés.`); e.target.value = ''; return; }
     notify(`${valid.length} mouvements restaurés.`, true);
